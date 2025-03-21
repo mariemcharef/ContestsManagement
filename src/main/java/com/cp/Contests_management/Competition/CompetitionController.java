@@ -16,16 +16,22 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 public class CompetitionController {
 
         private final ICompetitionService competitionService;
+
+
         @GetMapping("/all")
         public ResponseEntity<ApiResponse> getAllCompetitions() {
-            List<CompetitionDTO> Competitions = competitionService.getAllCompetitions();
-            return ResponseEntity.ok(new ApiResponse("success", Competitions));
+            List<Competition> Competitions = competitionService.getAllCompetitions();
+            List<CompetitionDTO> convertedCompetitions = competitionService.getConvertedCompetitions(Competitions);
+            return ResponseEntity.ok(new ApiResponse("success", convertedCompetitions));
         }
+
         @GetMapping("/{CId}/Competition")
         public ResponseEntity<ApiResponse> getCompetitionById(@PathVariable Long CId) {
             try {
-                CompetitionDTO competition = competitionService.getCompetitionById(CId);
-                return ResponseEntity.ok(new ApiResponse("success", competition));
+                Competition competition = competitionService.getCompetitionById(CId);
+                var competitionDto = competitionService.convertToDto(competition);
+
+                return ResponseEntity.ok(new ApiResponse("success", competitionDto));
             } catch (CompetitionNotFoundException e) {
                 return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
             }
@@ -34,17 +40,20 @@ public class CompetitionController {
         public ResponseEntity<ApiResponse> addCompetition(@RequestBody CompetitionAddRequest competition) {
             try {
                 Competition theCompetition = competitionService.addCompetition(competition);
-                return ResponseEntity.ok(new ApiResponse("Competition added successfully", theCompetition));
+                var competitionDto = competitionService.convertToDto(theCompetition);
+
+                return ResponseEntity.ok(new ApiResponse("Competition added successfully", competitionDto));
             } catch (Exception e) {
                 return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse(e.getMessage(),null));
             }
-
         }
         @PutMapping("/{competitionId}/update")
         public ResponseEntity<ApiResponse> updateCompetition(@RequestBody CompetitionUpdateRequest request,@PathVariable Long competitionId){
             try {
                 Competition competition = competitionService.updateCompetition(request,competitionId);
-                return ResponseEntity.ok(new ApiResponse("success", competition));
+                var competitionDto = competitionService.convertToDto(competition);
+
+                return ResponseEntity.ok(new ApiResponse("success", competitionDto));
             } catch (CompetitionNotFoundException e) {
                 return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
             }
@@ -59,14 +68,16 @@ public class CompetitionController {
                 return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
             }
         }
-        @GetMapping("/by/{name}")
-        public ResponseEntity<ApiResponse> getCompetitionByName(@PathVariable String name) {
+        @GetMapping("/by/name")
+        public ResponseEntity<ApiResponse> getCompetitionByName(@RequestParam String name) {
             try {
-                List<CompetitionDTO> competitions = competitionService.getCompetitionByName(name);
-                if(competitions.isEmpty()){
+                List<Competition> competitions = competitionService.getCompetitionByName(name);
+                List<CompetitionDTO> convertedCompetitions = competitionService.getConvertedCompetitions(competitions);
+
+                if(convertedCompetitions.isEmpty()){
                     return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(null,name));
                 }
-                return ResponseEntity.ok(new ApiResponse("success", competitions));
+                return ResponseEntity.ok(new ApiResponse("success", convertedCompetitions));
             }catch (Exception e){
                 return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse(e.getMessage(),null));
             }

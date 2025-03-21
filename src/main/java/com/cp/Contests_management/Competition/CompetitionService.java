@@ -1,14 +1,13 @@
 package com.cp.Contests_management.Competition;
 
-import com.cp.Contests_management.Announcement.AnnouncementNotFoundException;
 import com.cp.Contests_management.AppUser.AppUser;
 import com.cp.Contests_management.AppUser.AppUserRepository;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -16,10 +15,10 @@ import java.util.stream.Collectors;
 public class CompetitionService implements ICompetitionService{
     private final CompetitionRepository competitionRepository;
     private final AppUserRepository appUserRepository;
+    private final ModelMapper modelMapper;
     @Override
-    public CompetitionDTO getCompetitionById(Long id) {
-        Competition competition= competitionRepository.findById(id).orElseThrow(()->new CompetitionNotFoundException("Competition not found"));
-        return CompetitionMapper.toDTO(competition);
+    public Competition getCompetitionById(Long id) {
+        return competitionRepository.findById(id).orElseThrow(()->new CompetitionNotFoundException("Competition not found"));
     }
     public Competition createCompetition(CompetitionAddRequest request){
        // if (getCompetitionByName(request.getName()) != null){
@@ -65,13 +64,13 @@ public class CompetitionService implements ICompetitionService{
 
     }
     @Override
-    public List<CompetitionDTO> getCompetitionByName(String name) {
-        return competitionRepository.findAllByName(name).stream().map(CompetitionMapper::toDTO).collect(Collectors.toList());
+    public List<Competition> getCompetitionByName(String name) {
+        return competitionRepository.findAllByName(name);
     }
 
     @Override
-    public List<CompetitionDTO> getAllCompetitions() {
-        return competitionRepository.findAll().stream().map(CompetitionMapper::toDTO).collect(Collectors.toList());
+    public List<Competition> getAllCompetitions() {
+        return competitionRepository.findAll();
     }
 
     @Override
@@ -86,5 +85,15 @@ public class CompetitionService implements ICompetitionService{
         competitionRepository.findById(id).ifPresentOrElse(competitionRepository::delete,()->{
             throw new CompetitionNotFoundException("Competition not found");
         } );
+    }
+    @Override
+    public List<CompetitionDTO> getConvertedCompetitions(List<Competition> competitions) {
+        return competitions.stream().map(this::convertToDto).toList();
+    }
+
+
+    @Override
+    public CompetitionDTO convertToDto(Competition competition) {
+        return  modelMapper.map(competition, CompetitionDTO.class);
     }
 }

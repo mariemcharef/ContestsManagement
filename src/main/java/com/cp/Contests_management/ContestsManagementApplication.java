@@ -13,7 +13,7 @@ public class ContestsManagementApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(ContestsManagementApplication.class, args);
 	}
-	@Bean
+	/*@Bean
 	public CommandLineRunner commandLineRunner(//default user before doing the authentification
 			AppUserRepository repository
 
@@ -27,6 +27,6 @@ public class ContestsManagementApplication {
 			appUser0.setRating(0);
 			repository.save(appUser0);
 		};
-	}
+	}*/
 	
 }
