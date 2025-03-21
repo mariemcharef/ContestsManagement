@@ -6,13 +6,12 @@ import com.cp.Contests_management.Clarification.Clarification;
 import com.cp.Contests_management.ParticipantCompetition.ParticipantCompetition;
 import com.cp.Contests_management.Submission.Submission;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 

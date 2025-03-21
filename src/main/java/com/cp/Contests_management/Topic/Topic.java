@@ -3,13 +3,12 @@ package com.cp.Contests_management.Topic;
 import com.cp.Contests_management.Participant.Participant;
 import com.cp.Contests_management.Problem.Problem;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity

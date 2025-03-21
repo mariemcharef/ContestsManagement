@@ -3,7 +3,11 @@ package com.cp.Contests_management.ParticipantCompetition;
 import com.cp.Contests_management.Competition.Competition;
 import com.cp.Contests_management.Participant.Participant;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 public class ParticipantCompetition {
     @Id

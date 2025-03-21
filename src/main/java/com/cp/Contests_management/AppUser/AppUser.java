@@ -6,16 +6,16 @@ import com.cp.Contests_management.Participant.Participant;
 import com.cp.Contests_management.Problem.Problem;
 import com.cp.Contests_management.Submission.Submission;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 public class AppUser {//User is a key word (for the database)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

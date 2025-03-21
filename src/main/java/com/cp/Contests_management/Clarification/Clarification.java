@@ -4,11 +4,10 @@ import com.cp.Contests_management.Competition.Competition;
 import com.cp.Contests_management.Participant.Participant;
 import com.cp.Contests_management.Problem.Problem;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 

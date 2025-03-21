@@ -5,14 +5,13 @@ import com.cp.Contests_management.AppUser.AppUser;
 import com.cp.Contests_management.ParticipantCompetition.ParticipantCompetition;
 import com.cp.Contests_management.Problem.Problem;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity

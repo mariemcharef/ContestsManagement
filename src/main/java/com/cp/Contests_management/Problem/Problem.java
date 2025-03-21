@@ -9,14 +9,13 @@ import com.cp.Contests_management.Submission.Submission;
 import com.cp.Contests_management.TestCase.TestCase;
 import com.cp.Contests_management.Topic.Topic;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
