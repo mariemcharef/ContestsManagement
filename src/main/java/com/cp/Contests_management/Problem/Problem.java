@@ -1,17 +1,13 @@
 package com.cp.Contests_management.Problem;
 
 
-import com.cp.Contests_management.Announcement.Announcement;
-import com.cp.Contests_management.AppUser.AppUser;
 import com.cp.Contests_management.Clarification.Clarification;
 import com.cp.Contests_management.Competition.Competition;
 import com.cp.Contests_management.Submission.Submission;
 import com.cp.Contests_management.TestCase.TestCase;
-import com.cp.Contests_management.Topic.Topic;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -19,6 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 public class Problem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,17 +31,16 @@ public class Problem {
     private String content;
     private float timeLimit;//en melliseconds
     private float memoryLimit;//en megabytes
-    @ManyToMany
-    @JoinTable(
-            name= "Problem_topic",
-            joinColumns = {
-                    @JoinColumn(name="problem_id")
-            },
-            inverseJoinColumns = {
-                    @JoinColumn(name="topic_id")
-            }
-    )
+
+
+
+    @ElementCollection
+    @Enumerated(EnumType.STRING)
+    @CollectionTable(name = "problem_topics", joinColumns = @JoinColumn(name = "problem_id"))
+    @Column(name = "topic")
     private List<Topic> topics;
+
+
 
     @OneToMany(mappedBy = "problem")
     private List<Clarification> clarifications;

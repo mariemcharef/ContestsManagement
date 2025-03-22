@@ -3,6 +3,7 @@ package com.cp.Contests_management.Competition;
 import com.cp.Contests_management.ApiResponse;
 import com.cp.Contests_management.AppUser.*;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,32 +11,32 @@ import java.util.List;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("${api.prefix}/Competitions")
+@RequestMapping("${api.prefix}/competitions")
 public class CompetitionController {
 
-        private final ICompetitionService competitionService;
+    private final ICompetitionService competitionService;
 
-
-        @GetMapping("/all")
+    @GetMapping("/all")
         public ResponseEntity<ApiResponse> getAllCompetitions() {
             List<Competition> Competitions = competitionService.getAllCompetitions();
             List<CompetitionDTO> convertedCompetitions = competitionService.getConvertedCompetitions(Competitions);
             return ResponseEntity.ok(new ApiResponse("success", convertedCompetitions));
-        }
+    }
 
-        @GetMapping("/{CId}/Competition")
+        @GetMapping("/{CId}/competition")
         public ResponseEntity<ApiResponse> getCompetitionById(@PathVariable Long CId) {
             try {
                 Competition competition = competitionService.getCompetitionById(CId);
                 var competitionDto = competitionService.convertToDto(competition);
-
                 return ResponseEntity.ok(new ApiResponse("success", competitionDto));
             } catch (CompetitionNotFoundException e) {
                 return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
             }
         }
+
         @PostMapping("/add")
         public ResponseEntity<ApiResponse> addCompetition(@RequestBody CompetitionAddRequest competition) {
             try {
@@ -68,6 +69,7 @@ public class CompetitionController {
                 return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
             }
         }
+
         @GetMapping("/by/name")
         public ResponseEntity<ApiResponse> getCompetitionByName(@RequestParam String name) {
             try {

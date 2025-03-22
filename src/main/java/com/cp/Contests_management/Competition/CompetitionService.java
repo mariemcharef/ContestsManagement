@@ -13,16 +13,20 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CompetitionService implements ICompetitionService{
+
     private final CompetitionRepository competitionRepository;
+
     private final AppUserRepository appUserRepository;
+
     private final ModelMapper modelMapper;
+
     @Override
     public Competition getCompetitionById(Long id) {
         return competitionRepository.findById(id).orElseThrow(()->new CompetitionNotFoundException("Competition not found"));
     }
     public Competition createCompetition(CompetitionAddRequest request){
        // if (getCompetitionByName(request.getName()) != null){
-         //   throw new RuntimeException("Competition name already exists");
+       //   throw new RuntimeException("Competition name already exists");
        // }
         AppUser appUser = appUserRepository.findById(request.getAppUserId())
                 .orElseThrow(()->new RuntimeException("User not found"));
@@ -78,8 +82,6 @@ public class CompetitionService implements ICompetitionService{
         return competitionRepository.save(createCompetition(request));
     }
 
-
-
     @Override
     public void deleteCompetition(Long id) {
         competitionRepository.findById(id).ifPresentOrElse(competitionRepository::delete,()->{
@@ -90,7 +92,6 @@ public class CompetitionService implements ICompetitionService{
     public List<CompetitionDTO> getConvertedCompetitions(List<Competition> competitions) {
         return competitions.stream().map(this::convertToDto).toList();
     }
-
 
     @Override
     public CompetitionDTO convertToDto(Competition competition) {

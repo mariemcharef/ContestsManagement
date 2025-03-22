@@ -4,10 +4,10 @@ import com.cp.Contests_management.Competition.Competition;
 import com.cp.Contests_management.Competition.CompetitionNotFoundException;
 import com.cp.Contests_management.Competition.CompetitionRepository;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 
 @Service
@@ -15,26 +15,26 @@ import java.util.Optional;
 public class AnnouncementService implements IAnnouncementService {
     private final AnnouncementRepository announcementRepository;
     private final CompetitionRepository competitionRepository;
-    @Override
-    public Announcement addAnnouncement(AnnouncementAddRequest announcementRequest) {
-        //check if the competition is found in the db
-        //if yes , set it as the new product competition
-        //if no , return error
-        Competition competition = Optional.ofNullable(competitionRepository.findByName(announcementRequest.getCompetition().getName()))
-                .orElseThrow(() -> new CompetitionNotFoundException("Competition Not Found"));
-        announcementRequest.setCompetition(competition);
+    private final ModelMapper modelMapper;
+    private Announcement createAnnouncement(AnnouncementAddRequest request) {
 
-        return announcementRepository.save(createAnnouncement(announcementRequest,competition));
-    }
-
-    private Announcement createAnnouncement(AnnouncementAddRequest request, Competition competition) {
-        return new Announcement(
-                request.getContent(),
-                competition
-        );
-    }
-    private Announcement updateExistingAnnouncement(Announcement announcement,AnnouncementUpdateRequest request){
+        Competition competition = competitionRepository.findById(request.getCompetitionId())
+                .orElseThrow(() -> new CompetitionNotFoundException("Competition not found with id: " + request.getCompetitionId()));
+        Announcement announcement = new Announcement();
         announcement.setContent(request.getContent());
+        announcement.setCompetition(competition);
+        return announcement;
+    }
+    @Override
+    public Announcement addAnnouncement(AnnouncementAddRequest request) {
+        return announcementRepository.save(createAnnouncement(request));
+    }
+    public Announcement updateExistingAnnouncement(AnnouncementUpdateRequest request, Long id) {
+
+        Announcement announcement= announcementRepository.findById(id).orElseThrow(()->new AnnouncementNotFoundException("Announcement not found"));
+        if(request.getContent()!=null){
+            announcement.setContent(request.getContent());
+        }
         return announcement;
     }
     @Override
@@ -44,12 +44,13 @@ public class AnnouncementService implements IAnnouncementService {
 
     @Override
     public Announcement updateAnnouncement(AnnouncementUpdateRequest request, Long id) {
-        return announcementRepository.findById(id).map(announcement -> updateExistingAnnouncement(announcement,request)).map(announcementRepository :: save).orElseThrow(()->new AnnouncementNotFoundException("Announcement Not Found"));
+        return announcementRepository.findById(id).map(old -> updateExistingAnnouncement(request,id)).map(announcementRepository :: save).orElseThrow(()->new AnnouncementNotFoundException("Announcement Not Found"));
     }
 
     @Override
     public void deleteAnnouncement(Long id) {
-        announcementRepository.findById(id).ifPresentOrElse(announcementRepository::delete,() -> {throw new AnnouncementNotFoundException("Announcement Not Found");});
+        announcementRepository.findById(id)
+                .ifPresentOrElse(announcementRepository::delete,() -> {throw new AnnouncementNotFoundException("Announcement Not Found");});
     }
 
     @Override
@@ -58,14 +59,19 @@ public class AnnouncementService implements IAnnouncementService {
     }
 
     @Override
-    public List<Announcement> getAnnouncementByCompetition(Competition competition) {
-        return announcementRepository.findByCompetition(competition);
+    public List<Announcement> getAnnouncementByCompetition(Long competitionId) {
+        return announcementRepository.findByCompetitionId(competitionId);
     }
-
 
 
     @Override
-    public Long countAllAnnouncementsByCompetition(Competition competition) {
-        return announcementRepository.countByCompetition(competition);
+    public List<AnnouncementDTO> getConvertedAnnouncements(List<Announcement> announcements) {
+        return announcements.stream().map(this::convertToDto).toList();
     }
+
+    @Override
+    public AnnouncementDTO convertToDto(Announcement announcement) {
+        return  modelMapper.map(announcement, AnnouncementDTO.class);
+    }
+
 }
