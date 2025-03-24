@@ -12,7 +12,7 @@ import lombok.*;
 @AllArgsConstructor
 
 @Entity
-public class Clarification {//User is a key word (for the database)
+public class Clarification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -20,7 +20,6 @@ public class Clarification {//User is a key word (for the database)
             nullable = false
     )
     private String clarification;
-
     @ManyToOne
     @JoinColumn(name="participant_id")
     private Participant participant;

@@ -14,3 +14,10 @@ server:
 
 api:
   prefix: /api/v1
+
+judge0.api.url:
+  https://judge0-ce.p.rapidapi.com
+judge0.api.key:
+  f27222a81amsh28a1ddf997c07f6p119dc1jsn5f6c4ca445fd
+judge0.api.host:
+  judge0-ce.p.rapidapi.com

@@ -14,12 +14,13 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-
+@Builder
 @Entity
 public class Participant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(nullable = false)
     private String name;
 
@@ -47,7 +48,6 @@ public class Participant {
     //user can make 0 to many submissions
     @OneToMany(mappedBy = "participant")
     private List<Submission> submissions;
-
 
     @OneToMany(mappedBy = "participant")
     private List<Clarification> clarifications;

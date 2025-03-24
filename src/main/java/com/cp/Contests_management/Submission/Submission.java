@@ -21,8 +21,9 @@ public class Submission {
     @Column(nullable = false)
     private Language language;
 
-    @Column(nullable = false)
-    private Judgement judgement;
+    private String judge0Token;
+    private String judgement;
+    private boolean isProcessed;
 
     @Column(nullable = false)
     private String code;
@@ -34,4 +35,5 @@ public class Submission {
     @ManyToOne
     @JoinColumn(name="problem_id")
     private Problem problem;
+
 }
