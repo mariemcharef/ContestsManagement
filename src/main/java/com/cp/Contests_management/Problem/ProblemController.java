@@ -1,7 +1,6 @@
 package com.cp.Contests_management.Problem;
 
 import com.cp.Contests_management.ApiResponse;
-import com.cp.Contests_management.Competition.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

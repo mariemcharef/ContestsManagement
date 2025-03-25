@@ -1,66 +1,65 @@
 package com.cp.Contests_management.AppUser;
 
-import com.cp.Contests_management.Competition.Competition;
-import com.cp.Contests_management.Competition.CompetitionAddRequest;
-import com.cp.Contests_management.Competition.CompetitionNotFoundException;
+import com.cp.Contests_management.Participant.ParticipantService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.List;
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class AppUserService implements IAppUserService {
     private final AppUserRepository appUserRepository;
-
-
+    private final ParticipantService participantService;
+    private final ModelMapper modelMapper;
     @Override
     public AppUser getAppUserById(Long id) {
         return appUserRepository.findById(id).orElseThrow(()->new AppUserNotFoundException("User not found"));
     }
-
-    public AppUser updateExistingAppUser(AppUserUpdateRequest request, Long id) {
-        AppUser appUser = appUserRepository.findById(id).orElseThrow(()->new AppUserNotFoundException("User not found"));
-        if(request.getPassword()!=null){
-            appUser.setPassword(request.getPassword());
-        }
-        if(request.getEmail()!=null){
-            appUser.setEmail(request.getEmail());
-        }
-        if(request.getRating()!=0){
-            appUser.setRating(request.getRating());
-        }
-        return appUserRepository.save(appUser);
-    }
-
-    public AppUser createAppUser(AppUserAddRequest request){
-        if (getAppUserByName(request.getName()) != null){
-            throw new RuntimeException("User name already exists");
-        }
-        AppUser appUser = new AppUser();
-        appUser.setName(request.getName());
-        appUser.setPassword(request.getPassword());
-        appUser.setEmail(request.getEmail());
-        appUser.setRating(request.getRating());
-        return appUserRepository.save(appUser);
-    }
     @Override
     public AppUser getAppUserByName(String name) {
+
         return appUserRepository.findByName(name);
     }
 
     @Override
     public List<AppUser> getAllAppUsers() {
+
         return appUserRepository.findAll();
     }
 
     @Override
-    public AppUser addAppUser(AppUserAddRequest request) {
-        return appUserRepository.save(createAppUser(request));    }
-
+    @Transactional
+    public AppUser createAppUser(AppUserAddRequest request){
+        if (getAppUserByName(request.getName()) != null){
+            throw new RuntimeException("User name already exists");
+        }
+        if (getAppUserByName(request.getEmail()) != null){
+            throw new RuntimeException("Email already exists");
+        }
+        return Optional.of(request)
+                .filter(user->!appUserRepository.existsByEmail(request.getEmail()))
+                .map(req ->{
+                    AppUser appUser = new AppUser();
+                    appUser.setEmail(request.getEmail());
+                    appUser.setName(request.getName());
+                    appUser.setPassword(request.getPassword());
+                    appUserRepository.save(appUser);
+                    participantService.createParticipant(request.getName(),appUser);
+                    return appUser;
+                }).orElseThrow(()->new KeyAlreadyExistsException(request.getEmail()+" already exists"));
+    }
     @Override
     public AppUser updateAppUser(AppUserUpdateRequest request, Long id) {
-        return appUserRepository.findById(id).map(old -> updateExistingAppUser(request,id)).map(appUserRepository :: save).orElseThrow(()->new AppUserNotFoundException("User Not Found"));
+        return appUserRepository.findById(id)
+                .map(old -> {
+                    old.setRating(request.getRating());
+                return appUserRepository.save(old);})
+                .orElseThrow(()->new AppUserNotFoundException("User Not Found"));
     }
 
     @Override
@@ -68,5 +67,15 @@ public class AppUserService implements IAppUserService {
         appUserRepository.findById(id).ifPresentOrElse(appUserRepository::delete,()->{
             throw new AppUserNotFoundException("User not found");
         } );
+    }
+
+    @Override
+    public List<AppUserDTO> getConvertedAppUsers(List<AppUser> appUsers) {
+        return appUsers.stream().map(this::convertToDto).toList();
+    }
+
+    @Override
+    public AppUserDTO convertToDto(AppUser appUser) {
+        return  modelMapper.map(appUser, AppUserDTO.class);
     }
 }

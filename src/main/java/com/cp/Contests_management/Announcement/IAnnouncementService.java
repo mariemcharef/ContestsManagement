@@ -6,7 +6,7 @@ import com.cp.Contests_management.Problem.ProblemDTO;
 
 import java.util.List;
 
-public interface IAnnouncementService {
+public interface IAnnouncementService {//in general we use the interface to access these methods from the controller
     Announcement addAnnouncement(AnnouncementAddRequest announcementRequest);
     Announcement getAnnouncementById(Long id);
     Announcement updateAnnouncement(AnnouncementUpdateRequest announcement, Long id);

@@ -30,7 +30,7 @@ public class Participant {
     @PrePersist
     @PreUpdate
     private void validateuserCount() {
-        if (userCount == null || (userCount != 1 && userCount != 2 && userCount != 3)) {
+        if (userCount == null || ( userCount != 1 && userCount != 2 && userCount != 3)) {
             throw new IllegalArgumentException("att must be 1, 2, or 3");
         }
     }
