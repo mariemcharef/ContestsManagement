@@ -7,6 +7,7 @@ import java.util.List;
 @Data
 
 public class ProblemDTO {
+    private Long id;
     private String name;
     private String label;
     private String content;

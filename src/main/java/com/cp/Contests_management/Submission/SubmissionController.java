@@ -50,7 +50,24 @@ public class SubmissionController {
         Submission submission = submissionService.getSubmissionById(submissionId);
         return submissionService.checkSubmissionResult(submission);
     }
+    @GetMapping("/checkAllResults")
+    public ResponseEntity<ApiResponse> checkAllResults() {
+        List<Submission> Submissions = submissionService.getResultsNotChecked();
+        List<SubmissionDTO> convertedSubmissions = submissionService.getConvertedSubmissions(Submissions);
+        return ResponseEntity.ok(new ApiResponse("success", convertedSubmissions));
 
+    }
+    @GetMapping("/ByParticipant/{participantId}")
+    public ResponseEntity<ApiResponse> getSubmissionByParticipantId(@PathVariable Long participantId){
 
+        try {
+
+            List<Submission> Submissions = submissionService.getSubmissionByParticipantId(participantId);
+            List<SubmissionDTO> convertedSubmissions = submissionService.getConvertedSubmissions(Submissions);
+            return ResponseEntity.ok(new ApiResponse("success", convertedSubmissions));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 }

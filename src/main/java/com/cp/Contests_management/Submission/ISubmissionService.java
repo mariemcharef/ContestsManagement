@@ -20,4 +20,7 @@ public interface ISubmissionService {
     String submitCodeToJudge0(Submission submission);
 
     String checkSubmissionResult(Submission submission);
+
+    //get results of submissions not checked
+    List<Submission> getResultsNotChecked();
 }

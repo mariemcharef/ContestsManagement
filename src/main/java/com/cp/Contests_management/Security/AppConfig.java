@@ -1,4 +1,4 @@
-package com.cp.Contests_management;
+package com.cp.Contests_management.Security;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
@@ -15,4 +15,6 @@ public class AppConfig {
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
+
+
 }

@@ -17,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.cp.Contests_management.Submission.Language.fromJudge0Id;
 
@@ -127,7 +128,7 @@ public class SubmissionService implements ISubmissionService {
         HttpEntity<SubmissionRequest> requestEntity = new HttpEntity<>(request, headers);
         logger.info("Submitting code to Judge0: {}", request);
 
-        int maxRetries = 3;
+        int maxRetries = 5;
         int attempts = 0;
         while (attempts < maxRetries) {
             try {
@@ -189,6 +190,16 @@ public class SubmissionService implements ISubmissionService {
             throw new RuntimeException("Failed to fetch submission result: " + e.getMessage(), e);
         }
     }
-
+    //get results of submissions not checked
+    @Override
+    public List<Submission> getResultsNotChecked() {
+        return submissionRepository.findAll().stream()
+                .filter(s -> !s.isProcessed())
+                .map(s -> {
+                    checkSubmissionResult(s);
+                    return s;
+                })
+                .collect(Collectors.toList());
+    }
 
 }

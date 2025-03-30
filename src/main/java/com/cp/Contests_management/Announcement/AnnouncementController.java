@@ -1,12 +1,7 @@
 package com.cp.Contests_management.Announcement;
 
 import com.cp.Contests_management.ApiResponse;
-import com.cp.Contests_management.Competition.Competition;
-import com.cp.Contests_management.Competition.CompetitionNotFoundException;
-import com.cp.Contests_management.Competition.CompetitionService;
-import com.cp.Contests_management.Competition.ICompetitionService;
-import com.cp.Contests_management.Problem.Problem;
-import com.cp.Contests_management.Problem.ProblemDTO;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

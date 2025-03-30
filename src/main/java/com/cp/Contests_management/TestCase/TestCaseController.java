@@ -13,7 +13,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("${api.prefix}/problem/{problemId}/testCases")
+@RequestMapping("${api.prefix}/testCases")
 public class TestCaseController {
     private final TestCaseService testCaseService;
 
@@ -28,7 +28,7 @@ public class TestCaseController {
             return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
         }
     }
-    @GetMapping("/all")
+    @GetMapping("{problemId}/all")
     public ResponseEntity<ApiResponse> getTestCasesByProblemId(@PathVariable long problemId) {
         List<TestCase> TestCases = testCaseService.getTestCasesByProblemId(problemId);
         List<TestCaseDTO> convertedTestCases = testCaseService.getConvertedTestCases(TestCases);

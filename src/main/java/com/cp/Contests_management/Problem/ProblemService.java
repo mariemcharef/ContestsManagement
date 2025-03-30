@@ -5,7 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +30,14 @@ public class ProblemService implements IProblemService {
     public List<Problem> getAllProblems() {
 
         return problemRepository.findAll();
+    }
+    //get old problems
+    @Override
+    public List<Problem> getOldProblems() {
+        return problemRepository.findAll().stream()
+                .filter(problem -> problem.getCompetition() != null &&
+                        problem.getCompetition().getEndTime().isBefore(LocalDateTime.now()))
+                .collect(Collectors.toList());
     }
 
     public Problem createProblem(ProblemAddRequest request){

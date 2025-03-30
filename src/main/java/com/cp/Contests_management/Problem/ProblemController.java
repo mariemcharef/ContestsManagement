@@ -22,6 +22,12 @@ public class ProblemController {
         List<ProblemDTO> convertedProblems = problemService.getConvertedProblems(Problems);
         return ResponseEntity.ok(new ApiResponse("success", convertedProblems));
     }
+    @GetMapping("/old")
+    public ResponseEntity<ApiResponse> getOldProblems() {
+        List<Problem> Problems = problemService.getOldProblems();
+        List<ProblemDTO> convertedProblems = problemService.getConvertedProblems(Problems);
+        return ResponseEntity.ok(new ApiResponse("success", convertedProblems));
+    }
 
     @GetMapping("/{Id}/problem")
     public ResponseEntity<ApiResponse> getProblemById(@PathVariable Long Id) {
