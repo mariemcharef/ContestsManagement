@@ -4,7 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface ClarificationRepository extends JpaRepository<Clarification,Long> {
+public interface ClarificationRepository extends JpaRepository<Clarification,Integer> {
 
-    List<Clarification> findByProblemId(Long competitionId);
 }

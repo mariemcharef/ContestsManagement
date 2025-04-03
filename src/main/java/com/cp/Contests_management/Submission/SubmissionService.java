@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,7 +24,7 @@ import static com.cp.Contests_management.Submission.Language.fromJudge0Id;
 
 @Service
 @RequiredArgsConstructor
-public class SubmissionService implements ISubmissionService {
+public class SubmissionService {
     private static final String JUDGE0_URL = "https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=false&wait=false";
     private static final String RAPIDAPI_KEY ="f27222a81amsh28a1ddf997c07f6p119dc1jsn5f6c4ca445fd";
     private static final String RAPIDAPI_HOST = "judge0-ce.p.rapidapi.com";
@@ -34,10 +35,11 @@ public class SubmissionService implements ISubmissionService {
     private final ParticipantRepository participantRepository;
 
 
-    public Submission createSubmission(SubmissionAddRequest request){
-        Problem problem = problemRepository.findById(request.getProblemId())
-                .orElseThrow(()->new RuntimeException("Problem not found"));
-        Participant participant=participantRepository.findById(request.getParticipantId()).orElseThrow(()->new RuntimeException("Participant not found"));
+    public Submission addSubmission(SubmissionAddRequest request,Integer problem_id,Integer participant_id){
+        Problem problem = problemRepository.findById(problem_id)
+                .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Problem not found"));
+        Participant participant=participantRepository.findById(participant_id)
+                .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Participant not found"));
 
         Submission submission = new Submission();
         submission.setCode(request.getCode());
@@ -45,66 +47,64 @@ public class SubmissionService implements ISubmissionService {
         submission.setParticipant(participant);
         submission.setLanguage(fromJudge0Id(request.getLanguageId()));
         submission.setTime(LocalDateTime.now());
-        submission.setJudgement("Pending");
-        String judge0Token = submitCodeToJudge0(submission);
-        submission.setJudge0Token(judge0Token);
-        submission.setProcessed(false);
-        //return submitCode(submission);
-
-        return submissionRepository.save(submission);
-    }
-    @Override
-    public Submission addSubmission(SubmissionAddRequest request) {
-        return createSubmission(request);
-    }
-
-    public Submission submitCode(Submission submission) {
+        submission.setJudgement("In Queue");
         String judge0Token = submitCodeToJudge0(submission);
         submission.setJudge0Token(judge0Token);
         submission.setProcessed(false);
         return submissionRepository.save(submission);
     }
 
-    @Override
-    public Submission getSubmissionById(Long id) {
-        return submissionRepository.findById(id).orElseThrow(() -> new RuntimeException("Submission not found"));
+
+
+//    public Submission submitCode(Submission submission) {
+//        String judge0Token = submitCodeToJudge0(submission);
+//        submission.setJudge0Token(judge0Token);
+//        submission.setProcessed(false);
+//        return submissionRepository.save(submission);
+//    }
+
+
+    public Submission getSubmissionById(Integer id) {
+        return submissionRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Submission not found"));
     }
 
-    @Override
-    public List<Submission> getSubmissionByParticipantId(Long participantId) {
+
+    public List<Submission> getSubmissionByParticipantId(Integer participantId) {
         return submissionRepository.findByParticipantId(participantId);
     }
 
-    @Override
+
     public List<Submission> getAllSubmissions() {
+        getResultsNotChecked();
         return submissionRepository.findAll();
     }
 
-    @Override
+
     public SubmissionDTO convertToDto(Submission submission) {
         return  modelMapper.map(submission, SubmissionDTO.class);
     }
-    @Override
+
     public List<SubmissionDTO> getConvertedSubmissions(List<Submission> submissions) {
         return submissions.stream().map(this::convertToDto).toList();
     }
 
     public String getTestCaseInput(Submission submission) {
-        if (submission == null || submission.getProblem() == null) {
-            throw new IllegalArgumentException("Submission or Problem is null");
+        if ( submission.getProblem() == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND," Problem is null");
         }
         Problem problem =submission.getProblem();
         List<TestCase> testCases = problem.getTestCases();
         if (testCases == null || testCases.isEmpty()) {
             throw new IllegalStateException("No test cases found for the problem");
         }
-        return testCases.get(0).getInput();
+        return testCases.get(0).getInput();//testCase that will be send to judge0 by default
 
     }
 
     public String getTestCaseOutput(Submission submission) {
-        if (submission == null || submission.getProblem() == null) {
-            throw new IllegalArgumentException("Submission or Problem is null");
+        if (submission.getProblem() == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Problem is null");
         }
         Problem problem =submission.getProblem();
         List<TestCase> testCases = problem.getTestCases();
@@ -114,7 +114,7 @@ public class SubmissionService implements ISubmissionService {
         return testCases.get(0).getOutput();
 
     }
-    @Override
+
     public String submitCodeToJudge0(Submission submission) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-rapidapi-host", RAPIDAPI_HOST);
@@ -143,7 +143,7 @@ public class SubmissionService implements ISubmissionService {
                 attempts++;
                 logger.error("Attempt {} failed: {}", attempts, e.getMessage());
                 if (attempts == maxRetries) {
-                    throw new RuntimeException("Failed to submit code to Judge0 after " + maxRetries + " attempts", e);
+                    throw new RuntimeException("Failed to submit code to Judge0 after " + maxRetries + " attempts", e);//to delete this message after finishing backend
                 }
                 try {
                     Thread.sleep(1000); // Wait 1 second before retrying
@@ -158,7 +158,7 @@ public class SubmissionService implements ISubmissionService {
     }
 
 
-    @Override
+
     public String checkSubmissionResult(Submission submission) {
         String token=submission.getJudge0Token();
         logger.info("Fetching result for token: {}", token);
@@ -191,7 +191,7 @@ public class SubmissionService implements ISubmissionService {
         }
     }
     //get results of submissions not checked
-    @Override
+
     public List<Submission> getResultsNotChecked() {
         return submissionRepository.findAll().stream()
                 .filter(s -> !s.isProcessed())

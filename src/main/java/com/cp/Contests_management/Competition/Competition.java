@@ -1,9 +1,11 @@
 package com.cp.Contests_management.Competition;
 
 import com.cp.Contests_management.Announcement.Announcement;
-import com.cp.Contests_management.AppUser.AppUser;
 import com.cp.Contests_management.ParticipantCompetition.ParticipantCompetition;
 import com.cp.Contests_management.Problem.Problem;
+import com.cp.Contests_management.User.User;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,28 +20,47 @@ import java.util.List;
 public class Competition {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
+
     @Column(
             nullable = false ,
             unique = true
     )
     private String name;
+
     @Column(nullable = false)
     private float duration;
+
+    @Column(nullable = false)
     private LocalDateTime startTime;
+
     private LocalDateTime endTime;
     private float penalty=20;
 
+    @ManyToOne
+    @JoinColumn(name="creator_id",nullable = false)
+    @JsonManagedReference
+    private User user;
+
     @OneToMany(mappedBy = "competition")
+    @JsonBackReference
+    private List<ParticipantCompetition> participantsCompetitions;
+
+    @OneToMany(mappedBy = "competition")
+    @JsonBackReference
     private List<Announcement> announcements;
 
     @OneToMany(mappedBy = "competition")
+    @JsonBackReference
     private List<Problem> problems;
 
-    @ManyToOne
-    @JoinColumn(name="AppUser_id",nullable = false)
-    private AppUser appUser;
+    @PrePersist
+    @PreUpdate
+    public void setEndTime() {
+        if (startTime != null && duration > 0) {
+            this.endTime = startTime.plusMinutes((long) duration);
+        }
+    }
 
-    @OneToMany(mappedBy = "competition")
-    private List<ParticipantCompetition> participantCompetitions;
+
 }

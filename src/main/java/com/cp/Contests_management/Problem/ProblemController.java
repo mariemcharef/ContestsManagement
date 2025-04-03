@@ -1,14 +1,12 @@
 package com.cp.Contests_management.Problem;
 
 import com.cp.Contests_management.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @RequiredArgsConstructor
 @RestController
@@ -17,88 +15,56 @@ public class ProblemController {
    private final ProblemService problemService;
 
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse> getAllProblems() {
+    public List<ProblemDTO> getAllProblems() {
         List<Problem> Problems = problemService.getAllProblems();
-        List<ProblemDTO> convertedProblems = problemService.getConvertedProblems(Problems);
-        return ResponseEntity.ok(new ApiResponse("success", convertedProblems));
+        return problemService.getConvertedProblems(Problems);
     }
     @GetMapping("/old")
-    public ResponseEntity<ApiResponse> getOldProblems() {
+    public List<ProblemDTO> getOldProblems() {
         List<Problem> Problems = problemService.getOldProblems();
-        List<ProblemDTO> convertedProblems = problemService.getConvertedProblems(Problems);
-        return ResponseEntity.ok(new ApiResponse("success", convertedProblems));
+        return problemService.getConvertedProblems(Problems);
     }
 
-    @GetMapping("/{Id}/problem")
-    public ResponseEntity<ApiResponse> getProblemById(@PathVariable Long Id) {
-        try {
-            Problem problem = problemService.getProblemById(Id);
-            var problemDto = problemService.convertToDto(problem);
-            return ResponseEntity.ok(new ApiResponse("success", problemDto));
+    @GetMapping("/{problem_id}/problem")
+    public ProblemDTO getProblemById(@PathVariable Integer problem_id) {
+       Problem problem = problemService.getProblemById(problem_id);
+       return problemService.convertToDto(problem);
 
-        } catch (ProblemNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
-        }
     }
 
-    @PostMapping("/add")
-    public ResponseEntity<ApiResponse> addProblem(@RequestBody ProblemAddRequest problem) {
-        try {
-            Problem theproblem = problemService.addProblem(problem);
-            var problemDto = problemService.convertToDto(theproblem);
+    @PostMapping("/{competition_id}/add")
+    public ProblemDTO addProblem(@Valid @RequestBody ProblemAddRequest request, @PathVariable Integer competition_id) {
+        Problem problem = problemService.addProblem(request,competition_id);
+        return problemService.convertToDto(problem);
 
-            return ResponseEntity.ok(new ApiResponse("Problem added successfully", problemDto));
-        } catch (Exception e) {
-            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse(e.getMessage(),null));
-        }
     }
 
-    @PutMapping("/{Id}/update")
-    public ResponseEntity<ApiResponse> updateProblem(@RequestBody ProblemUpdateRequest request, @PathVariable Long Id){
-        try {
-            Problem problem = problemService.updateProblem(request,Id);
-            var problemDto = problemService.convertToDto(problem);
+    @PutMapping("/{problem_id}/update")
+    public ProblemDTO updateProblem(@Valid @RequestBody ProblemUpdateRequest request, @PathVariable Integer problem_id){
+        Problem problem = problemService.updateProblem(request,problem_id);
+        return problemService.convertToDto(problem);
 
-            return ResponseEntity.ok(new ApiResponse("success", problemDto));
-        } catch (ProblemNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
-        }
     }
 
-    @DeleteMapping("/{CId}/delete")
-    public ResponseEntity<ApiResponse> deleteProblem(@PathVariable Long CId){
-        try {
-            problemService.deleteProblem(CId);
-            return ResponseEntity.ok(new ApiResponse("success", null));
-        } catch (ProblemNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
-        }
+    @DeleteMapping("/{problem_id}/delete")
+    public void deleteProblem(@PathVariable Integer problem_id){
+            problemService.deleteProblem(problem_id);
     }
 
-    @GetMapping("/by/name")
-    public ResponseEntity<ApiResponse> getProblemByName(@RequestParam String name) {
-        try {
-            List<Problem> problems = problemService.getProblemByName(name);
-            List<ProblemDTO> convertedProblems = problemService.getConvertedProblems(problems);
-            if(convertedProblems.isEmpty()){
-                return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(null,name));
-            }
-            return ResponseEntity.ok(new ApiResponse("success", convertedProblems));
-        }catch (ProblemNotFoundException e){
-            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse(e.getMessage(),null));
-        }
+    @GetMapping("/by_name/{problem_name}")
+    public List<ProblemDTO> getProblemByName(@PathVariable String problem_name) {
+
+        List<Problem> problems = problemService.getProblemByName(problem_name);
+        return problemService.getConvertedProblems(problems);
+
     }
 
     @GetMapping ("/competition/{id}")
-    public ResponseEntity<ApiResponse> getProblemByCompetitionId(@PathVariable Long id){
-        try {
-            List<Problem> problems = problemService.getProblemsByCompetitionId(id);
-            List<ProblemDTO> convertedProblems = problemService.getConvertedProblems(problems);
-            return ResponseEntity.ok(new ApiResponse("success", convertedProblems));
-        } catch (ProblemNotFoundException e) {
-            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse(e.getMessage(),null));
-        }
-    }
+    public List<ProblemDTO> getProblemByCompetitionId(@PathVariable Integer id){
 
+            List<Problem> problems = problemService.getProblemsByCompetitionId(id);
+            return problemService.getConvertedProblems(problems);
+
+    }
 
 }

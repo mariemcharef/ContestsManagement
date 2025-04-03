@@ -1,15 +1,16 @@
 package com.cp.Contests_management.Participant;
 
-import com.cp.Contests_management.AppUser.AppUserDTO;
+import com.cp.Contests_management.User.UserDTO;
 import lombok.Data;
 
 import java.util.List;
+
 @Data
 
 public class ParticipantDTO {
+    private Integer id;
     private String name;
 
-    private Integer userCount;
+    private List<UserDTO> users;
 
-//    private List<AppUserDTO> AppUsers;
 }

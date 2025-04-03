@@ -1,0 +1,105 @@
+package com.cp.Contests_management.User;
+
+import com.cp.Contests_management.ApiResponse;
+import com.cp.Contests_management.Competition.Competition;
+import com.cp.Contests_management.Competition.CompetitionDTO;
+import com.cp.Contests_management.Competition.CompetitionService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import javax.management.openmbean.KeyAlreadyExistsException;
+import java.util.List;
+
+import static org.springframework.http.HttpStatus.*;
+
+@RequiredArgsConstructor
+@RestController
+@RequestMapping("${api.prefix}/users")
+public class UserController {
+    private final UserService userService;
+    private final CompetitionService competitionService;
+    private final UserRepository userRepository;
+
+    @PostMapping("")
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserDTO createUser( @Valid @RequestBody UserAddRequest request) {
+        User user = userService.createUser(request);
+        return userService.convertToDto(user);
+    }
+
+    @GetMapping("")
+    @ResponseStatus(HttpStatus.OK)
+    public List<UserDTO> getAllUsers() {
+        List<User> users = userService.getAllUsers();
+        return userService.getConvertedUsers(users);
+    }
+
+    @GetMapping("/{userId}")
+    public UserDTO getUserById(@PathVariable Integer userId) {
+            User user = userService.getUserById(userId);
+            return userService.convertToDto(user);
+    }
+
+    @GetMapping("/search/{name}")
+    public List<UserDTO> searchUsersByName(@PathVariable String name){
+        List<User> users = userService.getUsersByName(name);
+        return userService.getConvertedUsers(users);
+    }
+
+
+    @DeleteMapping("/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteUser(@PathVariable Integer userId) {
+        userService.deleteUserById(userId);
+
+    }
+
+    @DeleteMapping("/delete/{name}")
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteUserByName(@PathVariable String name){
+        userService.deleteUserByName(name);
+    }
+
+    @GetMapping("/by-name/{name}")
+    @ResponseStatus(HttpStatus.OK)
+    public UserDTO getUserByName(@PathVariable String name) {
+            User user = userService.getUserByName(name);
+            return userService.convertToDto(user);
+    }
+
+    @GetMapping("/competitions/{userid}")
+    @ResponseStatus(HttpStatus.OK)
+    public List<CompetitionDTO> getAllUserCompetitions(@PathVariable Integer userid) {
+        List<Competition> competitions = userService.getAllUserCompetitions(userid);
+        return competitionService.getConvertedCompetitions(competitions);
+    }
+
+    @PutMapping("/{userId}/update")
+    @ResponseStatus(HttpStatus.OK)
+    public UserDTO updateUser(@RequestBody @Valid UserUpdateRequest request, @PathVariable Integer userId) {
+
+        User user = userService.updateUser( request, userId);
+        return userService.convertToDto(user);
+    }
+    //à revoir
+    @PatchMapping("/{userId}/changePassword")
+    @ResponseStatus(HttpStatus.OK)
+    public void updateUserPassword(@RequestBody String password, @PathVariable Integer userId) {
+
+        userService.updatePassword(userId, password);
+
+    }
+    @PatchMapping("/{userId}/updateRating")
+    @ResponseStatus(HttpStatus.OK)
+    public void updateUserRating(@RequestBody @Valid int rating, @PathVariable Integer userId) {
+
+        userService.updateRating(userId, rating);
+
+    }
+
+
+
+}

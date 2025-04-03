@@ -8,5 +8,5 @@ public class TestCaseDTO {
     private String output;
     private boolean hidden;
     private String explanation;
-    private Long problemId;
+
 }

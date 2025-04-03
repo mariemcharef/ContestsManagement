@@ -7,13 +7,13 @@ import java.util.List;
 @Data
 
 public class ProblemDTO {
-    private Long id;
+    private Integer id;
     private String name;
     private String label;
     private String content;
     private float timeLimit;
     private float memoryLimit;
     private List<Topic> topics;
-    private Long competitionId;
+   // private Integer competitionId;
     //private List<TestCase> testCases;
 }

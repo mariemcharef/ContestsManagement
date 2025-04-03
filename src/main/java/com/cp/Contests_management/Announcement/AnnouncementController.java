@@ -1,77 +1,48 @@
 package com.cp.Contests_management.Announcement;
 
-import com.cp.Contests_management.ApiResponse;
-
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("${api.prefix}/announcements")
 public class AnnouncementController {
     private final AnnouncementService announcementService;
+
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse> getAllAnnouncements() {
+    public List<AnnouncementDTO> getAllAnnouncements() {
         List<Announcement> announcements = announcementService.getAllAnnouncements();
-        List<AnnouncementDTO> convertedAnnouncements = announcementService.getConvertedAnnouncements(announcements);
-        return ResponseEntity.ok(new ApiResponse("success", convertedAnnouncements));
+        return announcementService.getConvertedAnnouncements(announcements);
     }
 
-    @GetMapping("/{Id}/announcement")
-    public ResponseEntity<ApiResponse> getAnnouncementById(@PathVariable Long Id) {
-        try {
-            Announcement announcement = announcementService.getAnnouncementById(Id);
-            var announcementDto = announcementService.convertToDto(announcement);
-            return ResponseEntity.ok(new ApiResponse("success", announcementDto));
-        } catch (AnnouncementNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
-        }
-    }
-    @PostMapping("/add")
-    public ResponseEntity<ApiResponse> addCompetition(@RequestBody AnnouncementAddRequest request){
-        try {
-            Announcement announcement =announcementService.addAnnouncement(request);
-            AnnouncementDTO announcementDto = announcementService.convertToDto(announcement);
-            return ResponseEntity.ok(new ApiResponse("success", announcementDto));
-        } catch (AnnouncementNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));        }
-    }
-    @PutMapping("/{id}/update")
-    public ResponseEntity<ApiResponse> updateCompetition(@RequestBody AnnouncementUpdateRequest request, @PathVariable Long id){
-        try {
-            Announcement announcement = announcementService.updateAnnouncement(request, id);
-            AnnouncementDTO announcementDto = announcementService.convertToDto(announcement);
-            return ResponseEntity.ok(new ApiResponse("success", announcementDto));
-        } catch (AnnouncementNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
-        }
+    @GetMapping("/{Announcement_id}")
+    public AnnouncementDTO getAnnouncementById(@PathVariable Integer Announcement_id) {
+        Announcement announcement = announcementService.getAnnouncementById(Announcement_id);
+        return announcementService.convertToDto(announcement);
 
     }
-    @DeleteMapping("/{id}/delete")
-    public ResponseEntity<ApiResponse> deleteCompetition(@PathVariable Long id){
-        try {
-            announcementService.deleteAnnouncement(id);
-            return ResponseEntity.ok(new ApiResponse("success",null));
-        } catch (AnnouncementNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
-        }
+
+    @PostMapping("/{competition_id}/add")
+    public AnnouncementDTO addCompetition(@RequestBody AnnouncementRequest request,@PathVariable Integer competition_id){
+        Announcement announcement = announcementService.addAnnouncement(request,competition_id);
+        return announcementService.convertToDto(announcement);
     }
-    @GetMapping("/competition/{id}")
-    public ResponseEntity<ApiResponse> getAnnouncementByCompetitionId(@PathVariable Long id){
-        try {
-            List<Announcement> announcements = announcementService.getAnnouncementByCompetition(id);
-            List<AnnouncementDTO> announcementDTOS = announcementService.getConvertedAnnouncements(announcements);
-            return ResponseEntity.ok(new ApiResponse("success", announcementDTOS));
-        } catch (AnnouncementNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
-        }
+
+    @PutMapping("/{announcement_id}/update")
+    public AnnouncementDTO updateCompetition(@RequestBody AnnouncementRequest request, @PathVariable Integer announcement_id){
+        Announcement announcement = announcementService.updateAnnouncement(request, announcement_id);
+        return announcementService.convertToDto(announcement);
+
     }
+    @DeleteMapping("/{announcement_id}/delete")
+    public void deleteCompetition(@PathVariable Integer announcement_id){
+       announcementService.deleteAnnouncement(announcement_id);
+    }
+
+
 
 
 

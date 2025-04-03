@@ -1,130 +1,150 @@
 package com.cp.Contests_management.Participant;
 
-import com.cp.Contests_management.AppUser.*;
+import com.cp.Contests_management.User.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
-public class ParticipantService implements IParicipantService{
+public class ParticipantService {
 
     private final ParticipantRepository participantRepository;
-    private final AppUserRepository appUserRepository;
-
+    private final UserRepository userRepository;
     private final ModelMapper modelMapper;
-    @Override
-    public Participant getParticipantById(Long id) {
-        return participantRepository
-                .findById(id).orElseThrow(()->new AppUserNotFoundException("Participant not found"));
+
+
+    public Participant createParticipant(String name, User User){//single user created automatically when i create user and have the same name
+
+        Participant participant = new Participant();
+        participant.setName(name);
+        List<User> Users = new ArrayList<>();
+        Users.add(User);
+
+        participant.setUsers(Users);
+
+
+        return participantRepository.save(participant);
     }
 
-    @Override
+    public Participant getParticipantById(Integer id) {
+        return participantRepository
+                .findById(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND, "Participant not found"));
+    }
+
     public Participant getParticipantByName(String name) {
+
         return participantRepository.findByName(name);
     }
 
-    @Override
     public List<Participant> getAllParticipants() {
+
         return participantRepository.findAll();
     }
-    @Override
-    public Participant createParticipant(String name, AppUser appUser){//single user created automatically when i create user and have the same name
-        Participant participant = new Participant();
-        participant.setName(name);
-        participant.setUserCount(1);
-        List<AppUser> appUsers = new ArrayList<>();
-        appUsers.add(appUser);
-        participant.setAppUsers(appUsers);
-        return participantRepository.save(participant);
-    }
-    @Override
+
     @Transactional
-    public Participant createTeam(ParticipantAddRequest request){
-        if (request == null || request.getName() == null ) {
-            throw new IllegalArgumentException("Invalid participant request");
-        }
-        if (request.getAppUsers().isEmpty()) {
-            throw new IllegalArgumentException("At least one user must be provided");
+
+    public Participant createTeam(ParticipantAddRequest request, Integer IdTeamCreator){
+
+        if(participantRepository.findByName(request.getName())!=null){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Team name already exists");
         }
         Participant participant = new Participant();
         participant.setName(request.getName());
-        List<AppUser> appUsers = new ArrayList<>();
-        if (request.getAppUsers() != null && !request.getAppUsers().isEmpty()) {
 
-            for (String name : request.getAppUsers()) {
-                AppUser existingUser = appUserRepository.findByName(name);
-                appUsers.add(existingUser);
-                existingUser.getParticipants().add(participant);
-                appUserRepository.save(existingUser);
-            }
-            participant.setAppUsers(appUsers);
-            participant.setUserCount(appUsers.size());
-        }
-        else{
-            throw new IllegalArgumentException("Invalid participant request");
-        }
+        List<User> users = new ArrayList<>();
+        User createUser =userRepository.findById(IdTeamCreator).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        users.add(createUser);
+        createUser.getParticipants().add(participant);
+        userRepository.save(createUser);
+        // the user who create the team will be added to list
+
+        participant.setUsers(users);
         return participantRepository.save(participant);
 
     }
 
-    @Override
-    public Participant updateParticipant(ParticipantUpdateRequest request, Long id) {
-        Participant participant=participantRepository.findById(id).orElseThrow(()->new EntityNotFoundException("Participant not found"));
-        if(participant.getUserCount()<2){
-            throw new IllegalArgumentException("Invalid participant request");
-        }//updates only for teams
-        return participantRepository.findById(id)
-                .map(old -> {
-                    old.setName(request.getName());
-                    return participantRepository.save(old);})
-                .orElseThrow(()->new AppUserNotFoundException("Participant Not Found"));
+
+    public Participant updateParticipant(ParticipantUpdateRequest request, Integer id) {
+        //updates only for team name
+        if(request.getName()!=null){
+            return participantRepository.findById(id)
+                    .map(old -> {
+                        old.setName(request.getName());
+                        return participantRepository.save(old);
+                    }).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        }
+        return participantRepository.findById(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND, "Participant not found"));
+
     }
-    @Override
+
+    public void deleteParticipantById(Integer id) {
+       Participant participant = getParticipantById(id);
+       if(participant.getUsers().size()==1){
+           User user = participant.getUsers().get(0);
+           if(user.getName().equals(participant.getName())){
+               throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Cannot delete default participant team");
+           }
+       }
+        participantRepository.delete(participant);
+    }
+
     @Transactional
-    public void deleteAppUserFromTeam(Participant participant,AppUser appUser){
-        AppUser existingUser = appUserRepository.findById(appUser.getId())
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + appUser.getId()));
-        Participant existingParticipant = participantRepository.findById(participant.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Participant not found with id: " + participant.getId())) ;
-        existingParticipant.getAppUsers().removeIf(user -> user.getId().equals(existingUser.getId()));
-        existingUser.getParticipants().removeIf(p -> p.getId().equals(existingParticipant.getId()));
-        existingParticipant.setUserCount(existingParticipant.getUserCount()-1);
+
+    public void addUserToTeam( Integer userId,Integer participantId){
+        User existingUser = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        Participant existingParticipant = participantRepository.findById(participantId)
+                .orElseThrow(() -> new EntityNotFoundException("Team not found with id: " + participantId)) ;
+        if(existingParticipant.getUsers().contains(existingUser)){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User already exists in this team");
+        }
+        if(existingParticipant.getUsers().size()==3){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"team size too large");
+        }
+        String participantName = existingParticipant.getName();
+        if(userRepository.existsByName(participantName)){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot add user to default participant of another user");
+        }
+        existingParticipant.getUsers().add(existingUser);
+        existingUser.getParticipants().add(existingParticipant);
         participantRepository.save(existingParticipant);
-        appUserRepository.save(existingUser);
+        userRepository.save(existingUser);
+
     }
 
-    @Override
     @Transactional
-    public void addAppUserToTeam(Participant participant, AppUser appUser){
-        AppUser existingUser = appUserRepository.findById(appUser.getId())
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + appUser.getId()));
-        Participant existingParticipant = participantRepository.findById(participant.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Participant not found with id: " + participant.getId())) ;
-        existingParticipant.getAppUsers().add(existingUser);
-        existingUser.getParticipants().add(participant);
-        existingParticipant.setUserCount(existingParticipant.getUserCount()+1);
 
-         participantRepository.save(existingParticipant);
-        appUserRepository.save(existingUser);
+    public void deleteUserFromTeam(Integer userId,Integer participantId){
+        User existingUser = userRepository.findById(userId)
+                .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")) ;
+        Participant existingParticipant = getParticipantById(participantId);
+        if(!existingParticipant.getUsers().contains(existingUser)){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User does not exist in this team");
+        }
+        if(existingParticipant.getUsers().size()<2){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Cannot delete default user");
+        }
 
+        existingParticipant.getUsers().removeIf(user -> user.getId().equals(userId));
+        existingUser.getParticipants().removeIf(p -> p.getId().equals(participantId));
+        participantRepository.save(existingParticipant);
+        userRepository.save(existingUser);
     }
-    @Override
-    public void deleteParticipant(Long id) {
-        participantRepository.findById(id).ifPresentOrElse(participantRepository::delete,()->{
-            throw new ParticipantNotFoundException("Participant not found");
-        } );
 
-    }
-    @Override
+
     public ParticipantDTO convertToDto(Participant participant) {
         return modelMapper.map(participant, ParticipantDTO.class);
     }
-    @Override
+
     public List<ParticipantDTO> getConvertedParticipants(List<Participant> participants){
         return participants.stream().map(this::convertToDto).toList();
     }

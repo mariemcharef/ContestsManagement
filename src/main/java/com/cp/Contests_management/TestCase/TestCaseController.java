@@ -2,6 +2,7 @@ package com.cp.Contests_management.TestCase;
 
 import com.cp.Contests_management.ApiResponse;
 import com.cp.Contests_management.Competition.*;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,88 +18,53 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 public class TestCaseController {
     private final TestCaseService testCaseService;
 
-    @GetMapping("/{id}/testcase")
-    public ResponseEntity<ApiResponse> getTestCaseById(@PathVariable long id) {
-        try {
-            TestCase testCase = testCaseService.getTestCaseById(id);
-            var testCaseDto = testCaseService.convertToDto(testCase);
-
-            return ResponseEntity.ok(new ApiResponse("success", testCaseDto));
-        } catch (TestCaseNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
-        }
+    @GetMapping("/{testCase_id}/testcase")
+    public TestCaseDTO getTestCaseById(@PathVariable Integer testCase_id) {
+            TestCase testCase = testCaseService.getTestCaseById(testCase_id);
+            return testCaseService.convertToDto(testCase);
     }
-    @GetMapping("{problemId}/all")
-    public ResponseEntity<ApiResponse> getTestCasesByProblemId(@PathVariable long problemId) {
+
+    @GetMapping("/{problemId}/all")
+    public List<TestCaseDTO> getTestCasesByProblemId(@PathVariable Integer problemId) {
         List<TestCase> TestCases = testCaseService.getTestCasesByProblemId(problemId);
-        List<TestCaseDTO> convertedTestCases = testCaseService.getConvertedTestCases(TestCases);
-        return ResponseEntity.ok(new ApiResponse("success", convertedTestCases));
+        return testCaseService.getConvertedTestCases(TestCases);
     }
 
-    @PostMapping("/add")
-    public ResponseEntity<ApiResponse> addTestCase(@RequestBody TestCaseRequest request) {
-        try {
-            TestCase theTestcase = testCaseService.addTestCase(request);
-            var theTestcaseDto = testCaseService.convertToDto(theTestcase);
-            return ResponseEntity.ok(new ApiResponse("TestCase added successfully", theTestcaseDto));
-        } catch (Exception e) {
-            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse(e.getMessage(),null));
-        }
-    }
-    @PutMapping("/{Id}/update")
-    public ResponseEntity<ApiResponse> updateTestCase(@RequestBody TestCaseRequest request, @PathVariable Long Id){
-        try {
-            TestCase testCase = testCaseService.updateTestCase(request,Id);
-            var testcaseDto = testCaseService.convertToDto(testCase);
-
-            return ResponseEntity.ok(new ApiResponse("TestCase updated successfully", testcaseDto));
-        } catch (TestCaseNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
-        }
+    @PostMapping("/{problem_id}/add")
+    public TestCaseDTO addTestCase(@Valid @RequestBody TestCaseRequest request,@PathVariable Integer problem_id) {
+            TestCase theTestcase = testCaseService.addTestCase(request,problem_id);
+            return testCaseService.convertToDto(theTestcase);
     }
 
-    @DeleteMapping("/{Id}/delete")
-    public ResponseEntity<ApiResponse> deleteTestCase(@PathVariable Long Id){
-        try {
-            testCaseService.deleteTestCase(Id);
-            return ResponseEntity.ok(new ApiResponse("TestCase deleted successfully", null));
-        } catch (TestCaseNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
-        }
+    @PutMapping("/{testCase_id}/update")
+    public TestCaseDTO updateTestCase(@Valid @RequestBody TestCaseRequest request, @PathVariable Integer testCase_id){
+        TestCase testCase = testCaseService.updateTestCase(request,testCase_id);
+        return testCaseService.convertToDto(testCase);
+
     }
 
-    @PatchMapping("/{id}/toggle-visibility")//PATCH allows the client to send only the fields that need to be updated
-    public ResponseEntity<ApiResponse> toggleTestCaseVisibility(
-            @PathVariable Long problemId,
-            @PathVariable Long id) {
-        try {
-            TestCase testCase = testCaseService.toggleTestCaseVisibility(id);
-            TestCaseDTO testCaseDto = testCaseService.convertToDto(testCase);
-            return ResponseEntity.ok(new ApiResponse("success", testCaseDto));
-        }  catch (Exception e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
+    @DeleteMapping("/{testCase_id}/delete")
+    public void deleteTestCase(@PathVariable Integer testCase_id){
+            testCaseService.deleteTestCase(testCase_id);
+    }
 
-        }
+
+    @GetMapping("/{problem_id}/hidden")
+    public List<TestCaseDTO> getHiddenTestCases(@PathVariable Integer problem_id) {
+        List<TestCase> hiddenTestCases = testCaseService.getHiddenTestCases(problem_id);
+        return testCaseService.getConvertedTestCases(hiddenTestCases);
+
     }
-    @GetMapping("/hidden")
-    public ResponseEntity<ApiResponse> getHiddenTestCases(@PathVariable Long problemId) {
-        try {
-            List<TestCase> hiddenTestCases = testCaseService.getHiddenTestCases(problemId);
-            List<TestCaseDTO> convertedTestCases = testCaseService.getConvertedTestCases(hiddenTestCases);
-            return ResponseEntity.ok(new ApiResponse("success", convertedTestCases));
-        } catch (Exception e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
-        }
+    @GetMapping("/{problem_id}/visible")
+    public List<TestCaseDTO> getVisibleTestCases(@PathVariable Integer problem_id) {
+            List<TestCase> visibleTestCases = testCaseService.getVisibleTestCases(problem_id);
+             return testCaseService.getConvertedTestCases(visibleTestCases);
+
     }
-    @GetMapping("/visible")
-    public ResponseEntity<ApiResponse> getVisibleTestCases(@PathVariable Long problemId) {
-        try {
-            List<TestCase> visibleTestCases = testCaseService.getVisibleTestCases(problemId);
-            List<TestCaseDTO> convertedTestCases = testCaseService.getConvertedTestCases(visibleTestCases);
-            return ResponseEntity.ok(new ApiResponse("success", convertedTestCases));
-        } catch (Exception e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
-        }
-        }
+    @PatchMapping("/{testcase_id}")
+    public TestCaseDTO toggleTestCaseVisibility(@PathVariable Integer testcase_id) {
+        TestCase testCase = testCaseService.toggleTestCaseVisibility(testcase_id);
+        return testCaseService.convertToDto(testCase);
+    }
 
 }

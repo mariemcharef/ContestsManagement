@@ -1,100 +1,110 @@
 package com.cp.Contests_management.Competition;
 
-import com.cp.Contests_management.AppUser.AppUser;
-import com.cp.Contests_management.AppUser.AppUserRepository;
+
+import com.cp.Contests_management.User.User;
+import com.cp.Contests_management.User.UserRepository;
+import com.cp.Contests_management.User.UserService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class CompetitionService implements ICompetitionService{
+public class CompetitionService {
 
     private final CompetitionRepository competitionRepository;
 
-    private final AppUserRepository appUserRepository;
+    private final UserRepository userRepository;
+    private final UserService userService;
 
     private final ModelMapper modelMapper;
 
-    @Override
-    public Competition getCompetitionById(Long id) {
-        return competitionRepository.findById(id).orElseThrow(()->new CompetitionNotFoundException("Competition not found"));
+
+    public Competition getCompetitionById(Integer id) {
+        return competitionRepository
+                .findById(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND, "Competition not found"));
     }
-    public Competition createCompetition(CompetitionAddRequest request){
-       // if (getCompetitionByName(request.getName()) != null){
-       //   throw new RuntimeException("Competition name already exists");
-       // }
-        AppUser appUser = appUserRepository.findById(request.getAppUserId())
-                .orElseThrow(()->new RuntimeException("User not found"));
-        if (request.getStartTime() == null) {
-            throw new RuntimeException("startTime cannot be null");
+
+    public List<Competition> getAllCompetitions() {
+
+        return competitionRepository.findAll();
+    }
+
+    public List<Competition> getCompetitionsByName(String name) {
+
+        return competitionRepository.findAllByName(name);
+    }
+
+    public Competition getCompetitionByName(String name){
+        return competitionRepository.findByName(name);
+    }
+
+    public void deleteCompetition(Integer id){
+        competitionRepository.deleteById(id);
+    }
+
+
+    public Competition createCompetition(Integer userId, CompetitionAddRequest request){
+        if(userId == null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User id cannot be null");
         }
-        if (request.getDuration() <= 0) {
-            throw new RuntimeException("duration must be greater than 0");
+        if(getCompetitionByName(request.getName()) != null){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Competition name already exists");
         }
+        User user = userService.getUserById(userId);
         Competition competition = new Competition();
+        competition.setUser(user);
         competition.setName(request.getName());
-        competition.setAppUser(appUser);
         competition.setDuration(request.getDuration());
         competition.setStartTime(request.getStartTime());
-        LocalDateTime endTime = request.getStartTime().plusMinutes((long) (request.getDuration() * 60));
+        LocalDateTime endTime = request.getStartTime().plusMinutes((long) (request.getDuration() ));
         competition.setEndTime(endTime);
-        competition.setPenalty(request.getPenalty());
+        if (request.getPenalty()>0.0){
+            competition.setPenalty(request.getPenalty());
+        }
+
         return competitionRepository.save(competition);
     }
 
-    public Competition updateExistingCompetition(CompetitionUpdateRequest request,Long id) {
-        Competition competition = competitionRepository.findById(id).orElseThrow(()->new CompetitionNotFoundException("Competition not found"));
-        if(request.getDuration()!=0){
+
+    public Competition updateCompetition(CompetitionUpdateRequest request, Integer id) {
+        Competition competition = getCompetitionById(id);
+
+        if(request.getName() != null && !request.getName().equals(competition.getName())) {
+            if(getCompetitionByName(request.getName()) != null) {
+                throw new IllegalArgumentException("This name is already in use");
+            }
+            competition.setName(request.getName());
+        }
+
+        if( request.getDuration()>30.0){
             competition.setDuration(request.getDuration());
         }
         if(request.getStartTime()!=null){
             competition.setStartTime(request.getStartTime());
         }
-        LocalDateTime endTime = request.getStartTime().plusMinutes((long) (request.getDuration() * 60));
-        competition.setEndTime(endTime);
-        if(request.getPenalty()!=0){
+        if(request.getPenalty()>0.0){
             competition.setPenalty(request.getPenalty());
         }
-        return competition;
-    }
-    @Override
-    public Competition updateCompetition(CompetitionUpdateRequest request, Long id) {
-        return competitionRepository.findById(id).map(old -> updateExistingCompetition(request,id)).map(competitionRepository :: save).orElseThrow(()->new CompetitionNotFoundException("Competition Not Found"));
 
-    }
-    @Override
-    public List<Competition> getCompetitionByName(String name) {
-        return competitionRepository.findAllByName(name);
+        competition.setEndTime();
+
+        return competitionRepository.save(competition);
     }
 
-    @Override
-    public List<Competition> getAllCompetitions() {
-        return competitionRepository.findAll();
-    }
 
-    @Override
-    public Competition addCompetition(CompetitionAddRequest request) {
-        return competitionRepository.save(createCompetition(request));
-    }
-
-    @Override
-    public void deleteCompetition(Long id) {
-        competitionRepository.findById(id).ifPresentOrElse(competitionRepository::delete,()->{
-            throw new CompetitionNotFoundException("Competition not found");
-        } );
-    }
-    @Override
     public List<CompetitionDTO> getConvertedCompetitions(List<Competition> competitions) {
         return competitions.stream().map(this::convertToDto).toList();
     }
 
-    @Override
+
     public CompetitionDTO convertToDto(Competition competition) {
         return  modelMapper.map(competition, CompetitionDTO.class);
     }
+
 }

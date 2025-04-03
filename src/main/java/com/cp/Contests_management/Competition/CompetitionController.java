@@ -1,9 +1,8 @@
 package com.cp.Contests_management.Competition;
 
 import com.cp.Contests_management.ApiResponse;
-import com.cp.Contests_management.AppUser.*;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,72 +16,51 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @RequestMapping("${api.prefix}/competitions")
 public class CompetitionController {
 
-    private final ICompetitionService competitionService;
+    private final CompetitionService competitionService;
 
-    @GetMapping("/all")
-        public ResponseEntity<ApiResponse> getAllCompetitions() {
-            List<Competition> Competitions = competitionService.getAllCompetitions();
-            List<CompetitionDTO> convertedCompetitions = competitionService.getConvertedCompetitions(Competitions);
-            return ResponseEntity.ok(new ApiResponse("success", convertedCompetitions));
+    @PostMapping("/{creator_id}")
+    public CompetitionDTO createCompetition(@PathVariable("creator_id")Integer creator_id,
+                                            @Valid @RequestBody CompetitionAddRequest request){
+        Competition competition = competitionService.createCompetition(creator_id, request);
+        return competitionService.convertToDto(competition);
     }
 
-        @GetMapping("/{CId}/competition")
-        public ResponseEntity<ApiResponse> getCompetitionById(@PathVariable Long CId) {
-            try {
-                Competition competition = competitionService.getCompetitionById(CId);
-                var competitionDto = competitionService.convertToDto(competition);
-                return ResponseEntity.ok(new ApiResponse("success", competitionDto));
-            } catch (CompetitionNotFoundException e) {
-                return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
-            }
-        }
+    @GetMapping("")
+        public List<CompetitionDTO> getAllCompetitions() {
+            List<Competition> Competitions = competitionService.getAllCompetitions();
+            return competitionService.getConvertedCompetitions(Competitions);
+    }
 
-        @PostMapping("/add")
-        public ResponseEntity<ApiResponse> addCompetition(@RequestBody CompetitionAddRequest competition) {
-            try {
-                Competition theCompetition = competitionService.addCompetition(competition);
-                var competitionDto = competitionService.convertToDto(theCompetition);
+    @GetMapping("/{competition_id}")
+    public CompetitionDTO getCompetitionById(@PathVariable Integer competition_id) {
+        Competition competition = competitionService.getCompetitionById(competition_id);
+        return competitionService.convertToDto(competition);
 
-                return ResponseEntity.ok(new ApiResponse("Competition added successfully", competitionDto));
-            } catch (Exception e) {
-                return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse(e.getMessage(),null));
-            }
-        }
-        @PutMapping("/{competitionId}/update")
-        public ResponseEntity<ApiResponse> updateCompetition(@RequestBody CompetitionUpdateRequest request,@PathVariable Long competitionId){
-            try {
-                Competition competition = competitionService.updateCompetition(request,competitionId);
-                var competitionDto = competitionService.convertToDto(competition);
+    }
 
-                return ResponseEntity.ok(new ApiResponse("success", competitionDto));
-            } catch (CompetitionNotFoundException e) {
-                return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
-            }
-        }
+    @GetMapping("/search/{competition_name}")
+    public CompetitionDTO getCompetitionByName(@PathVariable String competition_name ){
+         Competition competition=competitionService.getCompetitionByName(competition_name);
+         return competitionService.convertToDto(competition);
+    }
 
-        @DeleteMapping("/{CId}/delete")
-        public ResponseEntity<ApiResponse> deleteCompetition(@PathVariable Long CId){
-            try {
-                competitionService.deleteCompetition(CId);
-                return ResponseEntity.ok(new ApiResponse("success", null));
-            } catch (CompetitionNotFoundException e) {
-                return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
-            }
-        }
 
-        @GetMapping("/by/name")
-        public ResponseEntity<ApiResponse> getCompetitionByName(@RequestParam String name) {
-            try {
-                List<Competition> competitions = competitionService.getCompetitionByName(name);
-                List<CompetitionDTO> convertedCompetitions = competitionService.getConvertedCompetitions(competitions);
+    @PutMapping("/{competition_id}")
+    public CompetitionDTO updateCompetition(@Valid @RequestBody CompetitionUpdateRequest request,
+                                            @PathVariable Integer competition_id){
 
-                if(convertedCompetitions.isEmpty()){
-                    return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(null,name));
-                }
-                return ResponseEntity.ok(new ApiResponse("success", convertedCompetitions));
-            }catch (Exception e){
-                return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse(e.getMessage(),null));
-            }
+            Competition competition = competitionService.updateCompetition(request,competition_id);
+            return competitionService.convertToDto(competition);
+    }
 
-        }
+    @DeleteMapping("/{CId}")
+    public void deleteCompetition(@PathVariable Integer CId){
+
+        competitionService.deleteCompetition(CId);
+
+    }
+
+
+
+
 }

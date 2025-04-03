@@ -3,7 +3,9 @@ package com.cp.Contests_management.Problem;
 import com.cp.Contests_management.Competition.*;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,28 +13,29 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class ProblemService implements IProblemService {
+public class ProblemService  {
 
     private final ProblemRepository problemRepository;
     private final CompetitionRepository competitionRepository;
     private final ModelMapper modelMapper;
-    @Override
-    public Problem getProblemById(Long id) {
-        return problemRepository.findById(id).orElseThrow(() -> new ProblemNotFoundException("Problem Not Found"));
+
+    public Problem getProblemById(Integer id) {
+        return problemRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Problem not found"));
     }
 
-    @Override
     public List<Problem> getProblemByName(String name) {
+
         return problemRepository.findByName(name);
     }
 
-    @Override
+
     public List<Problem> getAllProblems() {
 
         return problemRepository.findAll();
     }
     //get old problems
-    @Override
+
     public List<Problem> getOldProblems() {
         return problemRepository.findAll().stream()
                 .filter(problem -> problem.getCompetition() != null &&
@@ -40,9 +43,9 @@ public class ProblemService implements IProblemService {
                 .collect(Collectors.toList());
     }
 
-    public Problem createProblem(ProblemAddRequest request){
-        Competition competition = competitionRepository.findById(request.getCompetitionId())
-                .orElseThrow(() -> new CompetitionNotFoundException("Competition not found with id: " + request.getCompetitionId()));
+    public Problem addProblem(ProblemAddRequest request,Integer competitionId){
+        Competition competition = competitionRepository.findById(competitionId)
+                .orElseThrow(() -> new RuntimeException("Competition not found with id: " + competitionId));
         Problem problem = new Problem();
         problem.setName(request.getName());
         problem.setLabel(request.getLabel());
@@ -51,14 +54,12 @@ public class ProblemService implements IProblemService {
         problem.setMemoryLimit(request.getMemoryLimit());
         problem.setTopics(request.getTopics());
         problem.setCompetition(competition);
-        return problem;
+        return problemRepository.save(problem);
     }
-    @Override
-    public Problem addProblem(ProblemAddRequest request) {
-        return problemRepository.save(createProblem(request));
-    }
-    public Problem updateExistingProblem(ProblemUpdateRequest request, Long id) {
-        Problem problem = problemRepository.findById(id).orElseThrow(()->new ProblemNotFoundException("Problem not found"));
+
+
+    public Problem updateProblem(ProblemUpdateRequest request, Integer id) {
+        Problem problem = problemRepository.findById(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND, "Problem not found"));
         if(request.getName()!=null){
             problem.setName(request.getName());
         }
@@ -77,33 +78,26 @@ public class ProblemService implements IProblemService {
         if(request.getTimeLimit()!=0){
             problem.setTimeLimit(request.getTimeLimit());
         }
-        return problem;
-    }
-    @Override
-    public Problem updateProblem(ProblemUpdateRequest request, Long id) {
-        return problemRepository.findById(id)
-                .map(old -> updateExistingProblem(request,id))
-                .map(problemRepository :: save).orElseThrow(()->new ProblemNotFoundException("Problem Not Found"));
-
+        return problemRepository.save(problem);
     }
 
-    @Override
-    public void deleteProblem(Long id) {
+    public void deleteProblem(Integer id) {
+
         problemRepository.deleteById(id);
     }
+    public List<Problem> getProblemsByCompetitionId(Integer competitionId) {
+        return problemRepository.findAll().stream().filter(problem -> problem.getCompetition().getId().equals(competitionId)).toList();
+    }
 
-    @Override
     public List<ProblemDTO> getConvertedProblems(List<Problem> problems) {
         return problems.stream().map(this::convertToDto).toList();
     }
 
-    @Override
     public ProblemDTO convertToDto(Problem problem) {
 
         return  modelMapper.map(problem, ProblemDTO.class);
     }
-    @Override
-    public List<Problem> getProblemsByCompetitionId(Long competitionId) {
-        return problemRepository.findByCompetitionId(competitionId);
-    }
+
+
+
 }

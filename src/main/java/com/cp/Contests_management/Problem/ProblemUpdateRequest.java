@@ -4,6 +4,8 @@ import com.cp.Contests_management.TestCase.TestCase;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Set;
+
 @Data
 public class ProblemUpdateRequest {
     private String name;
@@ -11,7 +13,7 @@ public class ProblemUpdateRequest {
     private String content;
     private float timeLimit;
     private float memoryLimit;
-    private List<Topic> topics;
-    private Long competitionId;
+    private Set<Topic> topics;
+
     //private List<TestCase> testCases;
 }

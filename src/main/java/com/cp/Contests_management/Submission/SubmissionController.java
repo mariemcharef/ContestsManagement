@@ -7,6 +7,7 @@ import com.cp.Contests_management.Problem.Problem;
 import com.cp.Contests_management.Problem.ProblemAddRequest;
 import com.cp.Contests_management.Problem.ProblemDTO;
 import com.cp.Contests_management.Problem.ProblemRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,48 +27,37 @@ public class SubmissionController {
     private final ParticipantRepository participantRepository;
 
 
-    @PostMapping("/add")
-    public ResponseEntity<ApiResponse> addSubmission(@RequestBody SubmissionAddRequest submission) {
-        try {
-            Submission thesubmission = submissionService.addSubmission(submission);
-            var submissionDto = submissionService.convertToDto(thesubmission);
+    @PostMapping("/{problem_id}/{participant_id}/add")
+    public SubmissionDTO addSubmission(@Valid @RequestBody SubmissionAddRequest submission ,@PathVariable("problem_id")Integer problem_id,@PathVariable("participant_id")Integer participant_id ) {
+        Submission thesubmission = submissionService.addSubmission(submission,problem_id,participant_id);
+        return submissionService.convertToDto(thesubmission);
 
-            return ResponseEntity.ok(new ApiResponse("Submission added successfully", submissionDto));
-        } catch (Exception e) {
-            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse(e.getMessage(),null));
-        }
     }
 
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse> getAllSubmissions() {
+    public List<SubmissionDTO> getAllSubmissions() {
         List<Submission> Submissions = submissionService.getAllSubmissions();
-        List<SubmissionDTO> convertedSubmissions = submissionService.getConvertedSubmissions(Submissions);
-        return ResponseEntity.ok(new ApiResponse("success", convertedSubmissions));
+        return submissionService.getConvertedSubmissions(Submissions);
     }
 
     @GetMapping("/result/{submissionId}")//check the result
-    public String getResult(@PathVariable Long submissionId) {
+    public String getResult(@PathVariable Integer submissionId) {
         Submission submission = submissionService.getSubmissionById(submissionId);
         return submissionService.checkSubmissionResult(submission);
     }
+
     @GetMapping("/checkAllResults")
-    public ResponseEntity<ApiResponse> checkAllResults() {
+    public List<SubmissionDTO> checkAllResults() {
         List<Submission> Submissions = submissionService.getResultsNotChecked();
-        List<SubmissionDTO> convertedSubmissions = submissionService.getConvertedSubmissions(Submissions);
-        return ResponseEntity.ok(new ApiResponse("success", convertedSubmissions));
+       return submissionService.getConvertedSubmissions(Submissions);
 
     }
-    @GetMapping("/ByParticipant/{participantId}")
-    public ResponseEntity<ApiResponse> getSubmissionByParticipantId(@PathVariable Long participantId){
 
-        try {
+    @GetMapping("/ByParticipant/{participantId}")
+    public List<SubmissionDTO> getSubmissionByParticipantId(@PathVariable Integer participantId){
 
             List<Submission> Submissions = submissionService.getSubmissionByParticipantId(participantId);
-            List<SubmissionDTO> convertedSubmissions = submissionService.getConvertedSubmissions(Submissions);
-            return ResponseEntity.ok(new ApiResponse("success", convertedSubmissions));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+            return submissionService.getConvertedSubmissions(Submissions);
     }
 
 }

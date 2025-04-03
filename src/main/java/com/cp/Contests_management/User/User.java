@@ -1,10 +1,8 @@
-package com.cp.Contests_management.AppUser;
+package com.cp.Contests_management.User;
 
-import com.cp.Contests_management.Announcement.Announcement;
 import com.cp.Contests_management.Competition.Competition;
 import com.cp.Contests_management.Participant.Participant;
-import com.cp.Contests_management.Problem.Problem;
-import com.cp.Contests_management.Submission.Submission;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,10 +14,11 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Builder
-public class AppUser {//User is a key word (for the database)
+@Table(name ="app_user")
+public class User {//User is a key word (for the database)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
     @Column(
             nullable = false,
             unique = true
@@ -34,12 +33,14 @@ public class AppUser {//User is a key word (for the database)
             nullable = false
     )
     private String password;
+
     private int rating;
 
-    @ManyToMany(mappedBy = "AppUsers")
+    @ManyToMany(mappedBy = "users")
     private List<Participant> participants;//list of groups that one user is joining
 
-    @OneToMany(mappedBy = "appUser")
+    @OneToMany(mappedBy = "user")
+    @JsonBackReference
     private List<Competition> competitions;
 
 }

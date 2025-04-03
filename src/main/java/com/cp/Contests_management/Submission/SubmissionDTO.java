@@ -13,18 +13,14 @@ import java.time.LocalDateTime;
 @Data
 
 public class SubmissionDTO {
-    private Long id;
-    private LocalDateTime time= LocalDateTime.now();
+    private Integer id;
+    private LocalDateTime time;
 
     private Language language;
-
-    private String judge0Token;
+    
     private String judgement;
     private boolean isProcessed;
 
     private String code;
-    //private Long participantId;
-    private ParticipantDTO participant;
-    //private Long problemId;
-    private ProblemDTO problem;
+
 }

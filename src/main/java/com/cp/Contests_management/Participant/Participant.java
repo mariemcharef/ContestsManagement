@@ -1,11 +1,13 @@
 package com.cp.Contests_management.Participant;
 
 
-import com.cp.Contests_management.AppUser.AppUser;
 import com.cp.Contests_management.Clarification.Clarification;
 import com.cp.Contests_management.ParticipantCompetition.ParticipantCompetition;
 import com.cp.Contests_management.Submission.Submission;
+import com.cp.Contests_management.User.User;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.util.List;
@@ -19,24 +21,14 @@ import java.util.List;
 public class Participant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
-    @Column(nullable = false)
+    @Column(nullable = false,unique = true)
     private String name;
 
-    @Column(nullable = false)
-    private Integer userCount=1;
-
-    @PrePersist
-    @PreUpdate
-    private void validateuserCount() {
-        if (userCount == null || ( userCount != 1 && userCount != 2 && userCount != 3)) {
-            throw new IllegalArgumentException("att must be 1, 2, or 3");
-        }
-    }
     @ManyToMany
     @JoinTable(
-            name= "user_participant",
+            name= "user_participants",
             joinColumns = {
                     @JoinColumn(name="participant_id")
              },
@@ -44,15 +36,27 @@ public class Participant {
                     @JoinColumn(name="user_id")
             }
     )
-    private List<AppUser> AppUsers;
-    //user can make 0 to many submissions
-    @OneToMany(mappedBy = "participant")
-    private List<Submission> submissions;
-
-    @OneToMany(mappedBy = "participant")
-    private List<Clarification> clarifications;
+    @Size(
+            max = 3,
+            min = 1,
+            message = "A team can have at most 3 members and at least 1 member"
+    )
+    private List<User> users;
 
     @OneToMany(mappedBy = "participant")
     private List<ParticipantCompetition> participantCompetitions;
+
+    //user can make 0 to many submissions
+    @OneToMany(mappedBy = "participant")
+    @JsonBackReference
+    private List<Submission> submissions;
+
+    @OneToMany(mappedBy = "participant")
+    @JsonBackReference
+    private List<Clarification> clarifications;
+
+    public int getUserCount() {
+        return users.size();
+    }
 
 }
