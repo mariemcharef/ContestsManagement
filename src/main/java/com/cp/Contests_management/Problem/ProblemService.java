@@ -50,6 +50,8 @@ public class ProblemService  {
         problem.setName(request.getName());
         problem.setLabel(request.getLabel());
         problem.setContent(request.getContent());
+        problem.setInputExplanation(request.getInputExplanation());
+        problem.setOutputExplanation(request.getOutputExplanation());
         problem.setTimeLimit(request.getTimeLimit());
         problem.setMemoryLimit(request.getMemoryLimit());
         problem.setTopics(request.getTopics());
@@ -68,6 +70,12 @@ public class ProblemService  {
         }
         if(request.getContent()!=null){
             problem.setContent(request.getContent());
+        }
+        if(request.getInputExplanation()!=null){
+            problem.setInputExplanation(request.getInputExplanation());
+        }
+        if(request.getOutputExplanation()!=null){
+            problem.setOutputExplanation(request.getOutputExplanation());
         }
         if(request.getMemoryLimit()!=0){
             problem.setMemoryLimit(request.getMemoryLimit());

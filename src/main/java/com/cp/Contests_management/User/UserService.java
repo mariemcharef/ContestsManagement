@@ -4,11 +4,13 @@ import com.cp.Contests_management.Competition.Competition;
 import com.cp.Contests_management.Participant.Participant;
 import com.cp.Contests_management.Participant.ParticipantRepository;
 import com.cp.Contests_management.Participant.ParticipantService;
+import com.cp.Contests_management.Security.JwtService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -23,28 +25,11 @@ public class UserService  {
     private final ParticipantService participantService;
     private final ModelMapper modelMapper;
     private final ParticipantRepository participantRepository;
-
-    @Transactional
-
-    public User createUser(UserAddRequest request) {
-        if (userRepository.existsByName(request.getName())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "User name already exists");
-        }
-        return Optional.of(request)
-                .filter(user -> !userRepository.existsByEmail(request.getEmail()))
-                .map(req -> {
-                    User user = new User();
-                    user.setEmail(request.getEmail());
-                    user.setName(request.getName());
-                    user.setPassword(request.getPassword());
-                    userRepository.save(user);
-                    participantService.createParticipant(request.getName(), user);
-                    return user;
-                }).orElseThrow(() -> new KeyAlreadyExistsException(request.getEmail() + " already exists"));
-    }
-
+    private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
 
     public List<User> getAllUsers() {
+
         return userRepository.findAll();
     }
 
@@ -64,6 +49,12 @@ public class UserService  {
         }
         return users.get(0);
     }
+    public User getUserNameByEmail(String email) {
+       User user= userRepository.findByEmail(email)
+               .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+       return user;
+    }
+
     @Transactional
 
     public void deleteUserById(Integer id) {
@@ -75,20 +66,28 @@ public class UserService  {
                 participantRepository.delete(participant);
             }
         }
+        user.getCompetitions().forEach(competition -> competition.setUser(null));
         userRepository.delete(user);
     }
     @Transactional
-
-    public void deleteUserByName(String name){
-        User user = getUserByName(name);
-        List<Participant> participantsOfDeletedUser=user.getParticipants();
-        for(Participant participant : participantsOfDeletedUser) {
-            participant.getUsers().remove(user);
-            if(participant.getUsers().isEmpty()) {
-                participantRepository.delete(participant);
+//******************************************
+    public void deleteUserByToken(String jwtToken){
+        try {
+            String email=jwtService.getEmailFromToken(jwtToken);
+            System.out.println(email);
+            User user = userRepository.findByEmail(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+            List<Participant> participantsOfDeletedUser=user.getParticipants();
+            for(Participant participant : participantsOfDeletedUser) {
+                participant.getUsers().remove(user);
+                if(participant.getUsers().isEmpty()) {
+                    participantRepository.delete(participant);
+                }
             }
+            user.getCompetitions().forEach(competition -> competition.setUser(null));
+            userRepository.delete(user);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid authentification");
         }
-        userRepository.delete(user);
     }
 
 
@@ -101,7 +100,10 @@ public class UserService  {
         User user = getUserById(id);
         return user.getCompetitions();
     }
-
+    public Integer getRating(String name){
+        User user=getUserByName(name);
+        return user.getRating();
+    }
 
     public User updateUser(UserUpdateRequest request, Integer id) {
         return userRepository.findById(id)
@@ -120,16 +122,20 @@ public class UserService  {
                 .orElseThrow( ()->new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
 
-
-    public User updatePassword(Integer id, String password){
-        if(password.length() < 6 ){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must be at least 6 characters long.");
+    @Transactional
+    public void updatePassword(String authJwt, PasswordChangeRequest request){
+        try{
+            String email=jwtService.getEmailFromToken(authJwt);
+            User user=userRepository.findByEmail(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+            if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Password is incorrect");
+            }
+            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+            userRepository.save(user);
+        }catch(Exception e){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to change password!");
         }
-        return userRepository.findById(id)
-                .map(old -> {
-                    old.setPassword(password);
-                    return userRepository.save(old);})
-                .orElseThrow( ()->new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
     }
 
 
@@ -141,6 +147,7 @@ public class UserService  {
         }
         return users;
     }
+
 
 
     public List<UserDTO> getConvertedUsers(List<User> users) {

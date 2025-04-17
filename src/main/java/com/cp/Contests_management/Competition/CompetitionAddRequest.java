@@ -16,7 +16,6 @@ public class CompetitionAddRequest {
     @Min(value = 30,message = "Competition duration must be at least 30 minutes long")
     private float duration;
 
-    @NotNull(message = "You must provide starting time for the competition")
     private LocalDateTime startTime;
 
     private float penalty;

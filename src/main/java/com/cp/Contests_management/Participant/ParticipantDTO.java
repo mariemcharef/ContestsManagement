@@ -11,6 +11,4 @@ public class ParticipantDTO {
     private Integer id;
     private String name;
 
-    private List<UserDTO> users;
-
 }

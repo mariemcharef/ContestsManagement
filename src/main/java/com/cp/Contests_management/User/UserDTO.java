@@ -13,6 +13,5 @@ public class UserDTO {
     private String name;
     private String email;
     private int rating;
-    //private List<CompetitionDTO> competitions;
-    //private List<ParticipantDTO> participants;
+
 }

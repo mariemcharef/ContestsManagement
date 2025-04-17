@@ -13,39 +13,39 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("${api.prefix}/competitions")
+@RequestMapping("${api.prefix}")
 public class CompetitionController {
 
     private final CompetitionService competitionService;
 
-    @PostMapping("/{creator_id}")
+    @PostMapping("/competitions/{creator_id}")
     public CompetitionDTO createCompetition(@PathVariable("creator_id")Integer creator_id,
                                             @Valid @RequestBody CompetitionAddRequest request){
         Competition competition = competitionService.createCompetition(creator_id, request);
         return competitionService.convertToDto(competition);
     }
 
-    @GetMapping("")
+    @GetMapping("/public/competitions")
         public List<CompetitionDTO> getAllCompetitions() {
             List<Competition> Competitions = competitionService.getAllCompetitions();
             return competitionService.getConvertedCompetitions(Competitions);
     }
 
-    @GetMapping("/{competition_id}")
+    @GetMapping("/public/competitions/{competition_id}")
     public CompetitionDTO getCompetitionById(@PathVariable Integer competition_id) {
         Competition competition = competitionService.getCompetitionById(competition_id);
         return competitionService.convertToDto(competition);
 
     }
 
-    @GetMapping("/search/{competition_name}")
+    @GetMapping("/competitions/search/{competition_name}")
     public CompetitionDTO getCompetitionByName(@PathVariable String competition_name ){
          Competition competition=competitionService.getCompetitionByName(competition_name);
          return competitionService.convertToDto(competition);
     }
 
-
-    @PutMapping("/{competition_id}")
+    //ensure that the person who want to update is the creator
+    @PutMapping("/competitions/{competition_id}")
     public CompetitionDTO updateCompetition(@Valid @RequestBody CompetitionUpdateRequest request,
                                             @PathVariable Integer competition_id){
 
@@ -53,7 +53,7 @@ public class CompetitionController {
             return competitionService.convertToDto(competition);
     }
 
-    @DeleteMapping("/{CId}")
+    @DeleteMapping("/competitions/{CId}")
     public void deleteCompetition(@PathVariable Integer CId){
 
         competitionService.deleteCompetition(CId);

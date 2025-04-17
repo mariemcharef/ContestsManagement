@@ -4,6 +4,7 @@ import com.cp.Contests_management.ApiResponse;
 import com.cp.Contests_management.Competition.Competition;
 import com.cp.Contests_management.Competition.CompetitionDTO;
 import com.cp.Contests_management.Competition.CompetitionService;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,12 +24,6 @@ public class UserController {
     private final CompetitionService competitionService;
     private final UserRepository userRepository;
 
-    @PostMapping("")
-    @ResponseStatus(HttpStatus.CREATED)
-    public UserDTO createUser( @Valid @RequestBody UserAddRequest request) {
-        User user = userService.createUser(request);
-        return userService.convertToDto(user);
-    }
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
@@ -57,10 +52,12 @@ public class UserController {
 
     }
 
-    @DeleteMapping("/delete/{name}")
+    @DeleteMapping("/delete")
     @ResponseStatus(HttpStatus.OK)
-    public void deleteUserByName(@PathVariable String name){
-        userService.deleteUserByName(name);
+    @Transactional
+    public void deleteUserByName(@RequestHeader("Authorization") String authHeader){
+
+        userService.deleteUserByToken(authHeader);
     }
 
     @GetMapping("/by-name/{name}")
@@ -84,22 +81,29 @@ public class UserController {
         User user = userService.updateUser( request, userId);
         return userService.convertToDto(user);
     }
-    //à revoir
-    @PatchMapping("/{userId}/changePassword")
-    @ResponseStatus(HttpStatus.OK)
-    public void updateUserPassword(@RequestBody String password, @PathVariable Integer userId) {
 
-        userService.updatePassword(userId, password);
+    @PostMapping("/changePassword")
+    @ResponseStatus(HttpStatus.OK)
+    public void updateUserPassword(
+            @Valid @RequestBody PasswordChangeRequest request,
+            @RequestHeader("Authorization") String authHeader) {
+
+        userService.updatePassword(authHeader, request);
 
     }
     @PatchMapping("/{userId}/updateRating")
     @ResponseStatus(HttpStatus.OK)
-    public void updateUserRating(@RequestBody @Valid int rating, @PathVariable Integer userId) {
+    public void updateUserRating(@RequestBody @Valid UserUpdateRequest request, @PathVariable Integer userId) {
 
-        userService.updateRating(userId, rating);
+        userService.updateRating(userId, request.getRating());
 
     }
+    @GetMapping("/username")
+    public UserDTO getUsername(@RequestParam  String email) {
+        User user = userService.getUserNameByEmail(email);
 
+        return userService.convertToDto(user);
+    }
 
 
 }

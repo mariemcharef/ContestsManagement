@@ -35,12 +35,13 @@ public class SubmissionService {
     private final ParticipantRepository participantRepository;
 
 
-    public Submission addSubmission(SubmissionAddRequest request,Integer problem_id,Integer participant_id){
+    public Submission addSubmission(SubmissionAddRequest request,Integer problem_id,String participant_name){
         Problem problem = problemRepository.findById(problem_id)
                 .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Problem not found"));
-        Participant participant=participantRepository.findById(participant_id)
-                .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Participant not found"));
-
+        Participant participant=participantRepository.findByName(participant_name);
+                if(participant==null){
+                    throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Participant not found !!!!!!");
+                }
         Submission submission = new Submission();
         submission.setCode(request.getCode());
         submission.setProblem(problem);
@@ -55,23 +56,16 @@ public class SubmissionService {
     }
 
 
-
-//    public Submission submitCode(Submission submission) {
-//        String judge0Token = submitCodeToJudge0(submission);
-//        submission.setJudge0Token(judge0Token);
-//        submission.setProcessed(false);
-//        return submissionRepository.save(submission);
-//    }
-
-
     public Submission getSubmissionById(Integer id) {
         return submissionRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Submission not found"));
     }
 
 
-    public List<Submission> getSubmissionByParticipantId(Integer participantId) {
-        return submissionRepository.findByParticipantId(participantId);
+    public List<Submission> getSubmissionByParticipantName(String participant_name) {
+        getResultsNotChecked();
+        Participant participant = participantRepository.findByName(participant_name);
+        return submissionRepository.findByParticipantId(participant.getId());
     }
 
 

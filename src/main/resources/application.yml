@@ -15,6 +15,32 @@ server:
 api:
   prefix: /api/v1
 
+#  mail:
+#    host: localhost
+#    port: 1025
+#    username: cpcoding
+#    password: cpcoding
+#    properties:
+#      mail:
+#        smtp:
+#          trust: "*"
+#        auth: true
+#        starttls:
+#          enabled: true
+#        connectiontimeout: 5000
+#        timeout: 3000
+#        writetimeout: 5000
+
+#application:
+#  security:
+#    jwt:
+#      secret-key: NhYGJbDJJwZV2rbBTa0hX3zrAzOT8MAH
+#      expiration: 8640000
+#  mailing:
+#    frontend:
+#      activation-url: http://localhost:5173/activate-account
+
+
 judge0.api.url:
   https://judge0-ce.p.rapidapi.com
 judge0.api.key:

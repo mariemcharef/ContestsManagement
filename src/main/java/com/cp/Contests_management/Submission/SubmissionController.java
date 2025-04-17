@@ -20,43 +20,41 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("${api.prefix}/submissions")
+@RequestMapping("${api.prefix}")
 public class SubmissionController {
     private final SubmissionService submissionService;
     private final ProblemRepository problemRepository;
     private final ParticipantRepository participantRepository;
 
 
-    @PostMapping("/{problem_id}/{participant_id}/add")
-    public SubmissionDTO addSubmission(@Valid @RequestBody SubmissionAddRequest submission ,@PathVariable("problem_id")Integer problem_id,@PathVariable("participant_id")Integer participant_id ) {
-        Submission thesubmission = submissionService.addSubmission(submission,problem_id,participant_id);
+    @PostMapping("/submissions/{problem_id}/{participant_name}/add")
+    public SubmissionDTO addSubmission(@Valid @RequestBody SubmissionAddRequest submission ,@PathVariable("problem_id")Integer problem_id,@PathVariable("participant_name")String participant_name ) {
+        Submission thesubmission = submissionService.addSubmission(submission,problem_id,participant_name);
         return submissionService.convertToDto(thesubmission);
-
     }
 
-    @GetMapping("/all")
+    @GetMapping("/public/submissions/all")
     public List<SubmissionDTO> getAllSubmissions() {
         List<Submission> Submissions = submissionService.getAllSubmissions();
         return submissionService.getConvertedSubmissions(Submissions);
     }
 
-    @GetMapping("/result/{submissionId}")//check the result
+    @GetMapping("/submissions/result/{submissionId}")//check the result
     public String getResult(@PathVariable Integer submissionId) {
         Submission submission = submissionService.getSubmissionById(submissionId);
         return submissionService.checkSubmissionResult(submission);
     }
 
-    @GetMapping("/checkAllResults")
+    @GetMapping("/submissions/checkAllResults")
     public List<SubmissionDTO> checkAllResults() {
         List<Submission> Submissions = submissionService.getResultsNotChecked();
        return submissionService.getConvertedSubmissions(Submissions);
 
     }
 
-    @GetMapping("/ByParticipant/{participantId}")
-    public List<SubmissionDTO> getSubmissionByParticipantId(@PathVariable Integer participantId){
-
-            List<Submission> Submissions = submissionService.getSubmissionByParticipantId(participantId);
+    @GetMapping("/submissions/ByParticipant/{participant_name}")
+    public List<SubmissionDTO> getSubmissionByParticipantId(@PathVariable String participant_name){
+            List<Submission> Submissions = submissionService.getSubmissionByParticipantName(participant_name);
             return submissionService.getConvertedSubmissions(Submissions);
     }
 

@@ -34,6 +34,12 @@ public class Problem {
 
     @Column(length = 10000,nullable = false)
     private String content;
+
+    @Column(length = 10000,nullable = false)
+    private String inputExplanation;
+
+    @Column(length = 10000,nullable = false)
+    private String outputExplanation;
     private float timeLimit;//en melliseconds
     private float memoryLimit;//en megabytes
 

@@ -45,6 +45,7 @@ public class CompetitionService {
     }
 
     public void deleteCompetition(Integer id){
+
         competitionRepository.deleteById(id);
     }
 
@@ -96,6 +97,9 @@ public class CompetitionService {
 
         return competitionRepository.save(competition);
     }
+
+
+
 
 
     public List<CompetitionDTO> getConvertedCompetitions(List<Competition> competitions) {

@@ -1,6 +1,7 @@
 package com.cp.Contests_management.Problem;
 
 import com.cp.Contests_management.TestCase.TestCase;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 import java.util.List;
@@ -15,5 +16,8 @@ public class ProblemUpdateRequest {
     private float memoryLimit;
     private Set<Topic> topics;
 
+    private String inputExplanation;
+
+    private String outputExplanation;
     //private List<TestCase> testCases;
 }

@@ -5,6 +5,7 @@ import com.cp.Contests_management.ParticipantCompetition.ParticipantCompetition;
 import com.cp.Contests_management.Problem.Problem;
 import com.cp.Contests_management.User.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,14 +32,14 @@ public class Competition {
     @Column(nullable = false)
     private float duration;
 
-    @Column(nullable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime startTime;
-
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime endTime;
     private float penalty=20;
 
     @ManyToOne
-    @JoinColumn(name="creator_id",nullable = false)
+    @JoinColumn(name="creator_id")
     @JsonManagedReference
     private User user;
 

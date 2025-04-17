@@ -5,11 +5,13 @@ import com.cp.Contests_management.Participant.ParticipantDTO;
 import com.cp.Contests_management.Problem.ProblemDTO;
 import lombok.Data;
 
+
+
 @Data
 
 public class ClarificationDTO {
     private Integer id;
-    private String clarification;
-    private ProblemDTO problem;
+    private String question;
+    private String answer;
     private ParticipantDTO participant;
 }

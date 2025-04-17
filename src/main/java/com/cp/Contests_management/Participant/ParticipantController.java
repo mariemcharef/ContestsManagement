@@ -1,18 +1,16 @@
 package com.cp.Contests_management.Participant;
 
-import com.cp.Contests_management.ApiResponse;
 
 import com.cp.Contests_management.User.User;
+import com.cp.Contests_management.User.UserDTO;
 import com.cp.Contests_management.User.UserService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,11 +18,12 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 public class ParticipantController {
     private final ParticipantRepository participantRepository;
     private final ParticipantService participantService;
+    private final UserService userService;
 
 
     @PostMapping("")
-    public ParticipantDTO createTeam(@Valid @RequestBody ParticipantAddRequest request,@RequestParam Integer userId){
-        Participant participant=participantService.createTeam(request,userId);
+    public ParticipantDTO createTeam(@Valid @RequestBody ParticipantAddRequest request,@RequestParam String userName){
+        Participant participant=participantService.createTeam(request,userName);
         return participantService.convertToDto(participant);
     }
 
@@ -39,11 +38,24 @@ public class ParticipantController {
             Participant participant = participantService.getParticipantByName(name);
             return participantService.convertToDto(participant);
     }
+    @GetMapping("/getParticipantsByUser/{name}")
+    public List<ParticipantDTO> getParticipantsByUser(@PathVariable String name){
+        List<Participant> participants=participantService.getParticipantsByUserName(name);
+        return  participantService.getConvertedParticipants(participants);
+
+    }
 
     @GetMapping("")
     public List<ParticipantDTO> getAllParticipants() {
         List<Participant> participants = participantService.getAllParticipants();
         return participantService.getConvertedParticipants(participants);
+    }
+
+    @GetMapping("/membres/{participantId}")
+    public List<UserDTO> getMembres(@PathVariable Integer participantId) {
+        Participant participant = participantService.getParticipantById(participantId);
+        List<User> users = participant.getUsers();
+        return userService.getConvertedUsers(users);
     }
 
     @DeleteMapping("/{id}")
@@ -52,15 +64,17 @@ public class ParticipantController {
     }
 
     @Transactional
-    @PatchMapping("/delete-user/{user_id}/{participant_id}")
-    public void deleteUserFromTeam(@PathVariable Integer user_id, @PathVariable Integer participant_id){
-        participantService.deleteUserFromTeam(user_id,participant_id);
+    @PatchMapping("/delete-user/{user_name}/{participant_id}")
+    public void deleteUserFromTeam(@PathVariable String user_name, @PathVariable Integer participant_id){
+        participantService.deleteUserFromTeam(user_name,participant_id);
     }
+
     @Transactional
-    @PatchMapping("addUserToParticipants/{user_id}/{participant_id}")
-    public void addUser(@PathVariable Integer participant_id, @PathVariable Integer user_id){
-        participantService.addUserToTeam(user_id,participant_id);
+    @PatchMapping("/addUserToParticipants/{user_name}/{participant_id}")
+    public void addUser(@PathVariable Integer participant_id, @PathVariable String user_name){
+        participantService.addUserToTeam(user_name,participant_id);
     }
+
     @PatchMapping("/changeTeamName/{participant_id}")
     public ParticipantDTO changeTeamName(@PathVariable Integer participant_id,@Valid @RequestBody ParticipantUpdateRequest request){
         Participant participant = participantService.updateParticipant(request,participant_id);

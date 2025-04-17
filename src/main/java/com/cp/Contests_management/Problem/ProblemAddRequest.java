@@ -25,7 +25,10 @@ public class ProblemAddRequest {
     private float timeLimit;
     @NotNull(message="timelimit cannot be null")
     private float memoryLimit;
-
+    @NotEmpty(message = "You must provide a input format!")
+    private String inputExplanation;
+    @NotEmpty(message = "You must provide a output format!")
+    private String outputExplanation;
     private Set<Topic> topics;
     //private Integer competitionId;
     // private List<TestCaseRequest> testCases;

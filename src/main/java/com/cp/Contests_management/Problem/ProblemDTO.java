@@ -11,9 +11,10 @@ public class ProblemDTO {
     private String name;
     private String label;
     private String content;
+    private String inputExplanation;
+    private String outputExplanation;
     private float timeLimit;
     private float memoryLimit;
     private List<Topic> topics;
-   // private Integer competitionId;
-    //private List<TestCase> testCases;
+
 }

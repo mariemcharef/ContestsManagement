@@ -11,7 +11,6 @@ import lombok.Data;
 
 @Data
 public class SubmissionAddRequest {
-
     private int languageId;
     @NotEmpty(message="code cannot be empty")
     private String code;

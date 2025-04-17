@@ -12,7 +12,10 @@ public interface CompetitionRepository extends JpaRepository<Competition, Intege
     Competition findByName(String name);
 
     List<Competition> findAllByName(String name);
+
     List<Competition> getCompetitionsByUser(User user);
 
     boolean existsByName(String name);
 }
+
+

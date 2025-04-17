@@ -2,6 +2,7 @@ package com.cp.Contests_management.Submission;
 
 import com.cp.Contests_management.Participant.Participant;
 import com.cp.Contests_management.Problem.Problem;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -21,6 +22,7 @@ public class Submission {
 
 
     @Column(nullable = false, updatable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime time= LocalDateTime.now();
 
     @Column(nullable = false)//CPP by default

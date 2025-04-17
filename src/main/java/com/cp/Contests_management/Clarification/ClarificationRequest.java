@@ -7,9 +7,12 @@ import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class ClarificationRequest {
-    @NotEmpty(message="clarification connot be empty")
-    private String clarification;
+
+    @NotEmpty(message="Question cannot be empty")
+    private String question;
 
 }

@@ -49,10 +49,14 @@ public class ParticipantService {
 
         return participantRepository.findAll();
     }
+    public List<Participant> getParticipantsByUserName(String userName) {
+        User user=userRepository.findByName(userName);
+        return user.getParticipants();
+    }
 
     @Transactional
 
-    public Participant createTeam(ParticipantAddRequest request, Integer IdTeamCreator){
+    public Participant createTeam(ParticipantAddRequest request, String TeamCreator){
 
         if(participantRepository.findByName(request.getName())!=null){
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Team name already exists");
@@ -61,7 +65,10 @@ public class ParticipantService {
         participant.setName(request.getName());
 
         List<User> users = new ArrayList<>();
-        User createUser =userRepository.findById(IdTeamCreator).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        User createUser =userRepository.findByName(TeamCreator);
+        if(createUser==null){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
         users.add(createUser);
         createUser.getParticipants().add(participant);
         userRepository.save(createUser);
@@ -86,6 +93,7 @@ public class ParticipantService {
 
     }
 
+
     public void deleteParticipantById(Integer id) {
        Participant participant = getParticipantById(id);
        if(participant.getUsers().size()==1){
@@ -99,9 +107,11 @@ public class ParticipantService {
 
     @Transactional
 
-    public void addUserToTeam( Integer userId,Integer participantId){
-        User existingUser = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    public void addUserToTeam( String username,Integer participantId){
+        User existingUser = userRepository.findByName(username);
+        if(existingUser==null){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
         Participant existingParticipant = participantRepository.findById(participantId)
                 .orElseThrow(() -> new EntityNotFoundException("Team not found with id: " + participantId)) ;
         if(existingParticipant.getUsers().contains(existingUser)){
@@ -120,12 +130,13 @@ public class ParticipantService {
         userRepository.save(existingUser);
 
     }
-
     @Transactional
-
-    public void deleteUserFromTeam(Integer userId,Integer participantId){
-        User existingUser = userRepository.findById(userId)
-                .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")) ;
+    public void deleteUserFromTeam(String userName,Integer participantId){
+        User existingUser = userRepository.findByName(userName);
+        if(existingUser==null){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Membre not found");
+        }
+        Integer userId = existingUser.getId();
         Participant existingParticipant = getParticipantById(participantId);
         if(!existingParticipant.getUsers().contains(existingUser)){
             throw new ResponseStatusException(HttpStatus.CONFLICT, "User does not exist in this team");

@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class TestCaseDTO {
+    Integer id;
     private String input;
     private String output;
     private boolean hidden;
