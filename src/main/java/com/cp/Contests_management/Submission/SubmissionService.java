@@ -25,9 +25,9 @@ import static com.cp.Contests_management.Submission.Language.fromJudge0Id;
 @Service
 @RequiredArgsConstructor
 public class SubmissionService {
-    private static final String JUDGE0_URL = "https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=false&wait=false";
-    private static final String RAPIDAPI_KEY ="f27222a81amsh28a1ddf997c07f6p119dc1jsn5f6c4ca445fd";
-    private static final String RAPIDAPI_HOST = "judge0-ce.p.rapidapi.com";
+    private static final String JUDGE0_URL = "";
+    private static final String RAPIDAPI_KEY ="";
+    private static final String RAPIDAPI_HOST = "";
     private static final Logger logger = LoggerFactory.getLogger(SubmissionService.class);    private final ModelMapper modelMapper;
     private final RestTemplate restTemplate;
     private final SubmissionRepository submissionRepository;
