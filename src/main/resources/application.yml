@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/cpcodingdb
-    username: postgres
-    password: cpcoding
+    url: 
+    username:
+    password: 
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -42,8 +42,8 @@ api:
 
 
 judge0.api.url:
-  https://judge0-ce.p.rapidapi.com
+  
 judge0.api.key:
-  f27222a81amsh28a1ddf997c07f6p119dc1jsn5f6c4ca445fd
+  
 judge0.api.host:
-  judge0-ce.p.rapidapi.com
+  
